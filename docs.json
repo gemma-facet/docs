@@ -52,12 +52,14 @@
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Dataset preprocessing endpoints",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/dataset-preprocessing/health",
+              "api-reference/dataset-preprocessing/upload-dataset",
+              "api-reference/dataset-preprocessing/process-dataset",
+              "api-reference/dataset-preprocessing/get-datasets",
+              "api-reference/dataset-preprocessing/get-dataset",
+              "api-reference/dataset-preprocessing/delete-dataset"
             ]
           }
         ]
