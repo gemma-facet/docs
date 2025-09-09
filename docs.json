@@ -72,6 +72,15 @@
               "api-reference/training/download-model",
               "api-reference/training/delete-job"
             ]
+          },
+          {
+            "group": "Inference",
+            "pages": [
+              "api-reference/inference/health",
+              "api-reference/inference/inference",
+              "api-reference/inference/batch-inference",
+              "api-reference/inference/evaluation"
+            ]
           }
         ]
       }
