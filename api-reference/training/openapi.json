@@ -1,0 +1,1500 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Gemma Training Service",
+        "description": "Training backend (Cloud Run GPU) for fine-tuning LLMs with various methods",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "https://training-service-433968519479.us-central1.run.app"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health Check",
+                "operationId": "health_check_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs": {
+            "get": {
+                "summary": "List Jobs",
+                "description": "List all jobs with job_id and job_name.",
+                "operationId": "list_jobs_jobs_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JobListResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/train": {
+            "post": {
+                "summary": "Start Training",
+                "operationId": "start_training_train_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TrainRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JobSubmitResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/download/{job_id}": {
+            "get": {
+                "summary": "Download Gguf File",
+                "description": "Generate a signed URL for downloading the GGUF file of a specific job.\nThis is a convenience endpoint that automatically finds the GGUF file path from job status.",
+                "operationId": "download_gguf_file_jobs_download__job_id__get",
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Job Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DownloadUrlResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/{job_id}": {
+            "delete": {
+                "summary": "Delete Job",
+                "description": "Delete a job and all associated GCS resources.\nThis includes the job metadata, config file, adapter/merged model, and GGUF file if available.",
+                "operationId": "delete_job_jobs__job_id__delete",
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Job Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JobDeleteResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "summary": "Get Job Status",
+                "operationId": "get_job_status_jobs__job_id__get",
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Job Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JobStatusResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "BuiltInRewardConfig": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "Unique name for this reward function instance."
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "built_in",
+                        "title": "Type",
+                        "default": "built_in"
+                    },
+                    "function_name": {
+                        "type": "string",
+                        "enum": [
+                            "format_reward",
+                            "count_xml",
+                            "expression_accuracy",
+                            "numerical_accuracy"
+                        ],
+                        "title": "Function Name",
+                        "description": "The name of the built-in, batch-based reward function."
+                    },
+                    "parameters": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/BuiltInRewardParameters"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Optional parameters for the built-in function."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "function_name"
+                ],
+                "title": "BuiltInRewardConfig",
+                "description": "Config for using a classic, built-in reward function."
+            },
+            "BuiltInRewardParameters": {
+                "properties": {
+                    "think_tag": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Think Tag",
+                        "default": "think"
+                    },
+                    "answer_tag": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Answer Tag",
+                        "default": "answer"
+                    }
+                },
+                "type": "object",
+                "title": "BuiltInRewardParameters",
+                "description": "Parameters for built-in reward functions."
+            },
+            "DownloadUrlResponse": {
+                "properties": {
+                    "download_url": {
+                        "type": "string",
+                        "title": "Download Url"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "download_url"
+                ],
+                "title": "DownloadUrlResponse"
+            },
+            "EvaluationConfig": {
+                "properties": {
+                    "eval_strategy": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Eval Strategy",
+                        "default": "no"
+                    },
+                    "eval_steps": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Eval Steps",
+                        "default": 50
+                    },
+                    "compute_eval_metrics": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Compute Eval Metrics",
+                        "default": false
+                    },
+                    "batch_eval_metrics": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Batch Eval Metrics",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "title": "EvaluationConfig",
+                "description": "Evaluation configuration during training"
+            },
+            "EvaluationMetrics": {
+                "properties": {
+                    "accuracy": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Accuracy"
+                    },
+                    "perplexity": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Perplexity"
+                    },
+                    "eval_loss": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Eval Loss"
+                    },
+                    "eval_runtime": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Eval Runtime"
+                    }
+                },
+                "type": "object",
+                "title": "EvaluationMetrics",
+                "description": "Evaluation metrics structure to hold results after training.\nThis is used to store metrics like accuracy, loss, etc."
+            },
+            "ExportConfig": {
+                "properties": {
+                    "format": {
+                        "type": "string",
+                        "enum": [
+                            "adapter",
+                            "merged",
+                            "full"
+                        ],
+                        "title": "Format",
+                        "default": "adapter"
+                    },
+                    "destination": {
+                        "type": "string",
+                        "enum": [
+                            "gcs",
+                            "hfhub"
+                        ],
+                        "title": "Destination",
+                        "default": "gcs"
+                    },
+                    "hf_repo_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Hf Repo Id"
+                    },
+                    "include_gguf": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Include Gguf",
+                        "default": false
+                    },
+                    "gguf_quantization": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "none",
+                                    "f16",
+                                    "bf16",
+                                    "q8_0",
+                                    "q4_k_m"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Gguf Quantization"
+                    }
+                },
+                "type": "object",
+                "title": "ExportConfig",
+                "description": "Configuration for model export"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "HyperparameterConfig": {
+                "properties": {
+                    "learning_rate": {
+                        "type": "number",
+                        "title": "Learning Rate",
+                        "default": 0.0002
+                    },
+                    "batch_size": {
+                        "type": "integer",
+                        "title": "Batch Size",
+                        "default": 2
+                    },
+                    "gradient_accumulation_steps": {
+                        "type": "integer",
+                        "title": "Gradient Accumulation Steps",
+                        "default": 4
+                    },
+                    "epochs": {
+                        "type": "integer",
+                        "title": "Epochs",
+                        "default": 3
+                    },
+                    "max_steps": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Steps",
+                        "default": -1
+                    },
+                    "packing": {
+                        "type": "boolean",
+                        "title": "Packing",
+                        "default": false
+                    },
+                    "padding_free": {
+                        "type": "boolean",
+                        "title": "Padding Free",
+                        "default": false
+                    },
+                    "use_fa2": {
+                        "type": "boolean",
+                        "title": "Use Fa2",
+                        "default": false
+                    },
+                    "max_length": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Length",
+                        "default": 1024
+                    },
+                    "lr_scheduler_type": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Lr Scheduler Type",
+                        "default": "linear"
+                    },
+                    "save_strategy": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Save Strategy",
+                        "default": "epoch"
+                    },
+                    "logging_steps": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Logging Steps",
+                        "default": 10
+                    },
+                    "lora_rank": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Lora Rank",
+                        "default": 16
+                    },
+                    "lora_alpha": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Lora Alpha",
+                        "default": 16
+                    },
+                    "lora_dropout": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Lora Dropout",
+                        "default": 0.05
+                    },
+                    "max_prompt_length": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Prompt Length",
+                        "default": 512
+                    },
+                    "num_generations": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Num Generations",
+                        "default": 4
+                    },
+                    "max_grad_norm": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Grad Norm",
+                        "default": 0.1
+                    },
+                    "adam_beta1": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Adam Beta1",
+                        "default": 0.9
+                    },
+                    "adam_beta2": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Adam Beta2",
+                        "default": 0.99
+                    },
+                    "warmup_ratio": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Warmup Ratio",
+                        "default": 0.1
+                    },
+                    "beta": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Beta",
+                        "default": 0.1
+                    }
+                },
+                "type": "object",
+                "title": "HyperparameterConfig",
+                "description": "Training hyperparameters configuration"
+            },
+            "JobDeleteResponse": {
+                "properties": {
+                    "job_id": {
+                        "type": "string",
+                        "title": "Job Id"
+                    },
+                    "deleted": {
+                        "type": "boolean",
+                        "title": "Deleted"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "deleted_resources": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Deleted Resources"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "job_id",
+                    "deleted",
+                    "message"
+                ],
+                "title": "JobDeleteResponse"
+            },
+            "JobListEntry": {
+                "properties": {
+                    "job_id": {
+                        "type": "string",
+                        "title": "Job Id"
+                    },
+                    "job_name": {
+                        "type": "string",
+                        "title": "Job Name",
+                        "default": "unnamed job"
+                    },
+                    "base_model_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Base Model Id"
+                    },
+                    "modality": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "text",
+                                    "vision"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Modality",
+                        "default": "text"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "queued",
+                            "preparing",
+                            "training",
+                            "completed",
+                            "failed",
+                            "unknown"
+                        ],
+                        "title": "Status",
+                        "default": "unknown"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "job_id"
+                ],
+                "title": "JobListEntry"
+            },
+            "JobListResponse": {
+                "properties": {
+                    "jobs": {
+                        "items": {
+                            "$ref": "#/components/schemas/JobListEntry"
+                        },
+                        "type": "array",
+                        "title": "Jobs"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "jobs"
+                ],
+                "title": "JobListResponse"
+            },
+            "JobStatusResponse": {
+                "properties": {
+                    "job_name": {
+                        "type": "string",
+                        "title": "Job Name"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "queued",
+                            "preparing",
+                            "training",
+                            "completed",
+                            "failed"
+                        ],
+                        "title": "Status"
+                    },
+                    "modality": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "text",
+                                    "vision"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Modality",
+                        "default": "text"
+                    },
+                    "wandb_url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Wandb Url"
+                    },
+                    "processed_dataset_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Processed Dataset Id"
+                    },
+                    "adapter_path": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Adapter Path"
+                    },
+                    "base_model_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Base Model Id"
+                    },
+                    "gguf_path": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Gguf Path"
+                    },
+                    "metrics": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/EvaluationMetrics"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "error": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Error"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "job_name",
+                    "status"
+                ],
+                "title": "JobStatusResponse"
+            },
+            "JobSubmitResponse": {
+                "properties": {
+                    "job_id": {
+                        "type": "string",
+                        "title": "Job Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "job_id"
+                ],
+                "title": "JobSubmitResponse"
+            },
+            "LabelModelRewardConfig": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "Unique name for this reward function instance."
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "label_model",
+                        "title": "Type",
+                        "default": "label_model"
+                    },
+                    "gemini_api_key": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Gemini Api Key",
+                        "description": "Optional Gemini API key. If not provided, it will fall back to the GOOGLE_API_KEY environment variable."
+                    },
+                    "model": {
+                        "type": "string",
+                        "title": "Model",
+                        "description": "The Gemini model to use as the judge.",
+                        "default": "gemini-2.0-flash"
+                    },
+                    "prompt": {
+                        "type": "string",
+                        "title": "Prompt",
+                        "description": "The prompt/instruction for the judge model, with template support."
+                    },
+                    "labels": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Labels",
+                        "description": "The set of all possible labels the judge can output."
+                    },
+                    "passing_labels": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Passing Labels",
+                        "description": "The subset of labels that correspond to a positive (1.0) reward."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "prompt",
+                    "labels",
+                    "passing_labels"
+                ],
+                "title": "LabelModelRewardConfig",
+                "description": "Config for using an LLM to classify a response with a label."
+            },
+            "PythonRewardConfig": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "Unique name for this reward function instance."
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "python",
+                        "title": "Type",
+                        "default": "python"
+                    },
+                    "source": {
+                        "type": "string",
+                        "title": "Source",
+                        "description": "A string containing the Python source code for the grader. Must contain a 'grade' function."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "source"
+                ],
+                "title": "PythonRewardConfig",
+                "description": "Config for executing custom Python code as a reward function."
+            },
+            "RulerRewardConfig": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "Unique name for this reward function instance."
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "ruler",
+                        "title": "Type",
+                        "default": "ruler"
+                    },
+                    "gemini_api_key": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Gemini Api Key",
+                        "description": "Optional Gemini API key. If not provided, it will fall back to the GOOGLE_API_KEY environment variable."
+                    },
+                    "model": {
+                        "type": "string",
+                        "title": "Model",
+                        "description": "The Gemini model to use as the judge.",
+                        "default": "gemini-2.0-flash"
+                    },
+                    "rules": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Rules",
+                        "description": "A list of rules or principles for the judge to follow."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "rules"
+                ],
+                "title": "RulerRewardConfig",
+                "description": "Config for using the RULER model-based grader."
+            },
+            "ScoreModelRewardConfig": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "Unique name for this reward function instance."
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "score_model",
+                        "title": "Type",
+                        "default": "score_model"
+                    },
+                    "gemini_api_key": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Gemini Api Key",
+                        "description": "Optional Gemini API key. If not provided, it will fall back to the GOOGLE_API_KEY environment variable."
+                    },
+                    "model": {
+                        "type": "string",
+                        "title": "Model",
+                        "description": "The Gemini model to use as the judge.",
+                        "default": "gemini-2.0-flash"
+                    },
+                    "prompt": {
+                        "type": "string",
+                        "title": "Prompt",
+                        "description": "The prompt/instruction for the judge model, with template support."
+                    },
+                    "range": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "number"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Range",
+                        "description": "The output score will be clipped to this [min, max] range."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "prompt"
+                ],
+                "title": "ScoreModelRewardConfig",
+                "description": "Config for using an LLM to score a response numerically."
+            },
+            "StringCheckRewardConfig": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "Unique name for this reward function instance."
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "string_check",
+                        "title": "Type",
+                        "default": "string_check"
+                    },
+                    "reference_field": {
+                        "type": "string",
+                        "title": "Reference Field",
+                        "description": "Field in the dataset for the reference string to check against."
+                    },
+                    "operation": {
+                        "type": "string",
+                        "enum": [
+                            "eq",
+                            "ne",
+                            "like",
+                            "ilike"
+                        ],
+                        "title": "Operation",
+                        "description": "The string comparison operation to perform."
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "reference_field",
+                    "operation"
+                ],
+                "title": "StringCheckRewardConfig",
+                "description": "Config for checking if a string matches a reference."
+            },
+            "TextSimilarityRewardConfig": {
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "Unique name for this reward function instance."
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "text_similarity",
+                        "title": "Type",
+                        "default": "text_similarity"
+                    },
+                    "gemini_api_key": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Gemini Api Key",
+                        "description": "Optional Gemini API key. If not provided, it will fall back to the GOOGLE_API_KEY environment variable."
+                    },
+                    "reference_field": {
+                        "type": "string",
+                        "title": "Reference Field",
+                        "description": "Field in the dataset for the reference string for similarity comparison."
+                    },
+                    "evaluation_metric": {
+                        "type": "string",
+                        "enum": [
+                            "fuzzy_match",
+                            "bleu",
+                            "gleu",
+                            "meteor",
+                            "cosine",
+                            "rouge_1",
+                            "rouge_2",
+                            "rouge_3",
+                            "rouge_4",
+                            "rouge_5",
+                            "rouge_l"
+                        ],
+                        "title": "Evaluation Metric"
+                    },
+                    "embedding_model": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Embedding Model",
+                        "description": "The Google AI model for embeddings, required for the 'cosine' metric.",
+                        "default": "models/embedding-001"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "name",
+                    "reference_field",
+                    "evaluation_metric"
+                ],
+                "title": "TextSimilarityRewardConfig",
+                "description": "Config for calculating reward based on text similarity."
+            },
+            "TrainRequest": {
+                "properties": {
+                    "processed_dataset_id": {
+                        "type": "string",
+                        "title": "Processed Dataset Id"
+                    },
+                    "hf_token": {
+                        "type": "string",
+                        "title": "Hf Token"
+                    },
+                    "job_name": {
+                        "type": "string",
+                        "title": "Job Name",
+                        "default": "unnamed job"
+                    },
+                    "training_config": {
+                        "$ref": "#/components/schemas/TrainingConfig"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "processed_dataset_id",
+                    "hf_token",
+                    "training_config"
+                ],
+                "title": "TrainRequest",
+                "description": "Request schema for training job, only TrainingConfig will be accessible in backend"
+            },
+            "TrainingConfig": {
+                "properties": {
+                    "base_model_id": {
+                        "type": "string",
+                        "title": "Base Model Id"
+                    },
+                    "provider": {
+                        "type": "string",
+                        "enum": [
+                            "unsloth",
+                            "huggingface"
+                        ],
+                        "title": "Provider",
+                        "default": "huggingface"
+                    },
+                    "method": {
+                        "type": "string",
+                        "enum": [
+                            "Full",
+                            "LoRA",
+                            "QLoRA"
+                        ],
+                        "title": "Method",
+                        "default": "QLoRA"
+                    },
+                    "trainer_type": {
+                        "type": "string",
+                        "enum": [
+                            "sft",
+                            "dpo",
+                            "grpo",
+                            "orpo"
+                        ],
+                        "title": "Trainer Type",
+                        "default": "sft"
+                    },
+                    "modality": {
+                        "type": "string",
+                        "enum": [
+                            "text",
+                            "vision"
+                        ],
+                        "title": "Modality",
+                        "default": "text"
+                    },
+                    "hyperparameters": {
+                        "$ref": "#/components/schemas/HyperparameterConfig",
+                        "default": {
+                            "learning_rate": 0.0002,
+                            "batch_size": 2,
+                            "gradient_accumulation_steps": 4,
+                            "epochs": 3,
+                            "max_steps": -1,
+                            "packing": false,
+                            "padding_free": false,
+                            "use_fa2": false,
+                            "max_length": 1024,
+                            "lr_scheduler_type": "linear",
+                            "save_strategy": "epoch",
+                            "logging_steps": 10,
+                            "lora_rank": 16,
+                            "lora_alpha": 16,
+                            "lora_dropout": 0.05,
+                            "max_prompt_length": 512,
+                            "num_generations": 4,
+                            "max_grad_norm": 0.1,
+                            "adam_beta1": 0.9,
+                            "adam_beta2": 0.99,
+                            "warmup_ratio": 0.1,
+                            "beta": 0.1
+                        }
+                    },
+                    "export_config": {
+                        "$ref": "#/components/schemas/ExportConfig",
+                        "default": {
+                            "format": "adapter",
+                            "destination": "gcs",
+                            "include_gguf": false
+                        }
+                    },
+                    "eval_config": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/EvaluationConfig"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "wandb_config": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/WandbConfig"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "reward_config": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StringCheckRewardConfig"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/TextSimilarityRewardConfig"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/ScoreModelRewardConfig"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/LabelModelRewardConfig"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/PythonRewardConfig"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/BuiltInRewardConfig"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/RulerRewardConfig"
+                                        }
+                                    ]
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Reward Config"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "base_model_id"
+                ],
+                "title": "TrainingConfig",
+                "description": "Unified config structure for training, all customizations should be included here and ONLY here"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            },
+            "WandbConfig": {
+                "properties": {
+                    "api_key": {
+                        "type": "string",
+                        "title": "Api Key"
+                    },
+                    "project": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Project"
+                    },
+                    "log_model": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "false",
+                                    "checkpoint",
+                                    "end"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Log Model",
+                        "default": "end"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "api_key"
+                ],
+                "title": "WandbConfig",
+                "description": "Configuration for wandb monitoring, will extend to be a subclass of MonitoringConfig later"
+            }
+        }
+    }
+}

@@ -52,7 +52,7 @@
             ]
           },
           {
-            "group": "Dataset preprocessing endpoints",
+            "group": "Dataset preprocessing",
             "pages": [
               "api-reference/dataset-preprocessing/health",
               "api-reference/dataset-preprocessing/upload-dataset",
@@ -60,6 +60,17 @@
               "api-reference/dataset-preprocessing/get-datasets",
               "api-reference/dataset-preprocessing/get-dataset",
               "api-reference/dataset-preprocessing/delete-dataset"
+            ]
+          },
+          {
+            "group": "Training",
+            "pages": [
+              "api-reference/training/health",
+              "api-reference/training/get-jobs",
+              "api-reference/training/get-job",
+              "api-reference/training/train",
+              "api-reference/training/download-model",
+              "api-reference/training/delete-job"
             ]
           }
         ]
