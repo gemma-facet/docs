@@ -1,0 +1,895 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Gemma Dataset Preprocessing Service",
+        "description": "A modular service for preprocessing datasets into ChatML format",
+        "version": "2.0.0"
+    },
+    "servers": [
+        {
+            "url": "https://preprocessing-service-433968519479.us-central1.run.app"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health Check",
+                "description": "Health check endpoint",
+                "operationId": "health_check_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets/upload": {
+            "post": {
+                "summary": "Upload Dataset",
+                "description": "Upload a dataset file to storage",
+                "operationId": "upload_dataset_datasets_upload_post",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_upload_dataset_datasets_upload_post"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DatasetUploadResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets/process": {
+            "post": {
+                "summary": "Process Dataset",
+                "description": "Process a dataset into ChatML format\n\nThe processing converts the dataset to ChatML format using the provided configuration.\nThe configuration can include field mappings that specify either direct column mappings or template strings\nwith column references.\n\nExample field mappings:\n```python\n{\n    \"system_field\": {\"type\": \"template\", \"value\": \"You are a helpful assistant.\"},\n    \"user_field\": {\"type\": \"column\", \"value\": \"question\"},\n    \"assistant_field\": {\"type\": \"template\", \"value\": \"Answer: {answer}\"}\n}\n```",
+                "operationId": "process_dataset_datasets_process_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PreprocessingRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProcessingResult"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets": {
+            "get": {
+                "summary": "Get Datasets Info",
+                "description": "Get information about all the processed datasets owned by the user.",
+                "operationId": "get_datasets_info_datasets_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DatasetsInfoResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets/{processed_dataset_id}": {
+            "get": {
+                "summary": "Get Dataset Info",
+                "description": "Get information about a dataset using its unique processed dataset ID.",
+                "operationId": "get_dataset_info_datasets__processed_dataset_id__get",
+                "parameters": [
+                    {
+                        "name": "processed_dataset_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Processed Dataset Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DatasetInfoResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete Dataset",
+                "description": "Delete a dataset and all associated files using its unique processed dataset ID.\nNOTE: This only deletes preprocessed dataset, NOT raw dataset files!",
+                "operationId": "delete_dataset_datasets__processed_dataset_id__delete",
+                "parameters": [
+                    {
+                        "name": "processed_dataset_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Processed Dataset Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DatasetDeleteResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "AugmentationSetupConfig": {
+                "properties": {
+                    "augmentation_factor": {
+                        "type": "number",
+                        "title": "Augmentation Factor",
+                        "default": 1.5
+                    },
+                    "use_eda": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Use Eda",
+                        "default": false
+                    },
+                    "use_back_translation": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Use Back Translation",
+                        "default": false
+                    },
+                    "use_paraphrasing": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Use Paraphrasing",
+                        "default": false
+                    },
+                    "use_synthesis": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Use Synthesis",
+                        "default": false
+                    },
+                    "gemini_api_key": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Gemini Api Key"
+                    },
+                    "synthesis_ratio": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Synthesis Ratio"
+                    },
+                    "custom_prompt": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Custom Prompt"
+                    }
+                },
+                "type": "object",
+                "title": "AugmentationSetupConfig",
+                "description": "Currently we do not support customising parameters for augmentation methods.\nThis is supported in the backend but we do not expose it in the API for now for simplicity."
+            },
+            "Body_upload_dataset_datasets_upload_post": {
+                "properties": {
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "title": "File"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "file"
+                ],
+                "title": "Body_upload_dataset_datasets_upload_post"
+            },
+            "DatasetDeleteResponse": {
+                "properties": {
+                    "dataset_name": {
+                        "type": "string",
+                        "title": "Dataset Name"
+                    },
+                    "deleted": {
+                        "type": "boolean",
+                        "title": "Deleted"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "deleted_files_count": {
+                        "type": "integer",
+                        "title": "Deleted Files Count"
+                    },
+                    "deleted_resources": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Deleted Resources"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "dataset_name",
+                    "deleted",
+                    "message",
+                    "deleted_files_count"
+                ],
+                "title": "DatasetDeleteResponse"
+            },
+            "DatasetInfoResponse": {
+                "properties": {
+                    "dataset_name": {
+                        "type": "string",
+                        "title": "Dataset Name"
+                    },
+                    "dataset_subset": {
+                        "type": "string",
+                        "title": "Dataset Subset"
+                    },
+                    "dataset_source": {
+                        "type": "string",
+                        "enum": [
+                            "upload",
+                            "huggingface"
+                        ],
+                        "title": "Dataset Source"
+                    },
+                    "modality": {
+                        "type": "string",
+                        "enum": [
+                            "text",
+                            "vision"
+                        ],
+                        "title": "Modality",
+                        "default": "text"
+                    },
+                    "dataset_id": {
+                        "type": "string",
+                        "title": "Dataset Id"
+                    },
+                    "processed_dataset_id": {
+                        "type": "string",
+                        "title": "Processed Dataset Id"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "title": "Created At"
+                    },
+                    "splits": {
+                        "items": {
+                            "type": "object"
+                        },
+                        "type": "array",
+                        "title": "Splits"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "dataset_name",
+                    "dataset_subset",
+                    "dataset_source",
+                    "dataset_id",
+                    "processed_dataset_id",
+                    "created_at",
+                    "splits"
+                ],
+                "title": "DatasetInfoResponse"
+            },
+            "DatasetInfoSample": {
+                "properties": {
+                    "dataset_name": {
+                        "type": "string",
+                        "title": "Dataset Name"
+                    },
+                    "dataset_subset": {
+                        "type": "string",
+                        "title": "Dataset Subset"
+                    },
+                    "dataset_source": {
+                        "type": "string",
+                        "enum": [
+                            "upload",
+                            "huggingface"
+                        ],
+                        "title": "Dataset Source"
+                    },
+                    "modality": {
+                        "type": "string",
+                        "enum": [
+                            "text",
+                            "vision"
+                        ],
+                        "title": "Modality",
+                        "default": "text"
+                    },
+                    "dataset_id": {
+                        "type": "string",
+                        "title": "Dataset Id"
+                    },
+                    "processed_dataset_id": {
+                        "type": "string",
+                        "title": "Processed Dataset Id"
+                    },
+                    "num_examples": {
+                        "type": "integer",
+                        "title": "Num Examples"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "title": "Created At"
+                    },
+                    "splits": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Splits"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "dataset_name",
+                    "dataset_subset",
+                    "dataset_source",
+                    "dataset_id",
+                    "processed_dataset_id",
+                    "num_examples",
+                    "created_at",
+                    "splits"
+                ],
+                "title": "DatasetInfoSample"
+            },
+            "DatasetUploadResponse": {
+                "properties": {
+                    "dataset_id": {
+                        "type": "string",
+                        "title": "Dataset Id"
+                    },
+                    "filename": {
+                        "type": "string",
+                        "title": "Filename"
+                    },
+                    "gcs_path": {
+                        "type": "string",
+                        "title": "Gcs Path"
+                    },
+                    "size_bytes": {
+                        "type": "integer",
+                        "title": "Size Bytes"
+                    },
+                    "sample": {
+                        "items": {
+                            "type": "object"
+                        },
+                        "type": "array",
+                        "title": "Sample"
+                    },
+                    "columns": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Columns"
+                    },
+                    "num_examples": {
+                        "type": "integer",
+                        "title": "Num Examples"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "dataset_id",
+                    "filename",
+                    "gcs_path",
+                    "size_bytes",
+                    "sample",
+                    "columns",
+                    "num_examples"
+                ],
+                "title": "DatasetUploadResponse"
+            },
+            "DatasetsInfoResponse": {
+                "properties": {
+                    "datasets": {
+                        "items": {
+                            "$ref": "#/components/schemas/DatasetInfoSample"
+                        },
+                        "type": "array",
+                        "title": "Datasets"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "datasets"
+                ],
+                "title": "DatasetsInfoResponse"
+            },
+            "FieldMappingConfig": {
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "column",
+                            "template",
+                            "image"
+                        ],
+                        "title": "Type"
+                    },
+                    "value": {
+                        "type": "string",
+                        "title": "Value"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "value"
+                ],
+                "title": "FieldMappingConfig"
+            },
+            "HFSplitConfig": {
+                "properties": {
+                    "type": {
+                        "const": "hf_split",
+                        "title": "Type",
+                        "default": "hf_split"
+                    },
+                    "train_split": {
+                        "type": "string",
+                        "title": "Train Split"
+                    },
+                    "test_split": {
+                        "type": "string",
+                        "title": "Test Split"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "train_split",
+                    "test_split"
+                ],
+                "title": "HFSplitConfig"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "ManualSplitConfig": {
+                "properties": {
+                    "type": {
+                        "const": "manual_split",
+                        "title": "Type",
+                        "default": "manual_split"
+                    },
+                    "sample_size": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Sample Size"
+                    },
+                    "test_size": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Test Size"
+                    },
+                    "split": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Split"
+                    }
+                },
+                "type": "object",
+                "title": "ManualSplitConfig"
+            },
+            "NoSplitConfig": {
+                "properties": {
+                    "type": {
+                        "const": "no_split",
+                        "title": "Type",
+                        "default": "no_split"
+                    },
+                    "sample_size": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Sample Size"
+                    },
+                    "split": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Split"
+                    }
+                },
+                "type": "object",
+                "title": "NoSplitConfig"
+            },
+            "PreprocessingConfig": {
+                "properties": {
+                    "field_mappings": {
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/FieldMappingConfig"
+                                },
+                                {
+                                    "items": {
+                                        "$ref": "#/components/schemas/FieldMappingConfig"
+                                    },
+                                    "type": "array"
+                                }
+                            ]
+                        },
+                        "type": "object",
+                        "title": "Field Mappings",
+                        "default": {}
+                    },
+                    "normalize_whitespace": {
+                        "type": "boolean",
+                        "title": "Normalize Whitespace",
+                        "default": true
+                    },
+                    "augmentation_config": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AugmentationSetupConfig"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "split_config": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/HFSplitConfig"
+                            },
+                            {
+                                "$ref": "#/components/schemas/ManualSplitConfig"
+                            },
+                            {
+                                "$ref": "#/components/schemas/NoSplitConfig"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Split Config"
+                    }
+                },
+                "type": "object",
+                "title": "PreprocessingConfig"
+            },
+            "PreprocessingRequest": {
+                "properties": {
+                    "dataset_name": {
+                        "type": "string",
+                        "title": "Dataset Name"
+                    },
+                    "dataset_source": {
+                        "type": "string",
+                        "enum": [
+                            "upload",
+                            "huggingface"
+                        ],
+                        "title": "Dataset Source"
+                    },
+                    "dataset_id": {
+                        "type": "string",
+                        "title": "Dataset Id"
+                    },
+                    "dataset_subset": {
+                        "type": "string",
+                        "title": "Dataset Subset",
+                        "default": "default"
+                    },
+                    "processing_mode": {
+                        "$ref": "#/components/schemas/ProcessingMode"
+                    },
+                    "config": {
+                        "$ref": "#/components/schemas/PreprocessingConfig"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "dataset_name",
+                    "dataset_source",
+                    "dataset_id",
+                    "processing_mode",
+                    "config"
+                ],
+                "title": "PreprocessingRequest"
+            },
+            "ProcessingMode": {
+                "type": "string",
+                "enum": [
+                    "language_modeling",
+                    "prompt_only",
+                    "preference"
+                ],
+                "title": "ProcessingMode",
+                "description": "Specifies the preprocessing mode to format the dataset for a specific fine-tuning task."
+            },
+            "ProcessingResult": {
+                "properties": {
+                    "dataset_name": {
+                        "type": "string",
+                        "title": "Dataset Name"
+                    },
+                    "dataset_subset": {
+                        "type": "string",
+                        "title": "Dataset Subset"
+                    },
+                    "dataset_source": {
+                        "type": "string",
+                        "enum": [
+                            "upload",
+                            "huggingface"
+                        ],
+                        "title": "Dataset Source"
+                    },
+                    "modality": {
+                        "type": "string",
+                        "enum": [
+                            "text",
+                            "vision"
+                        ],
+                        "title": "Modality",
+                        "default": "text"
+                    },
+                    "dataset_id": {
+                        "type": "string",
+                        "title": "Dataset Id"
+                    },
+                    "processed_dataset_id": {
+                        "type": "string",
+                        "title": "Processed Dataset Id"
+                    },
+                    "num_examples": {
+                        "type": "integer",
+                        "title": "Num Examples"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "title": "Created At"
+                    },
+                    "splits": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Splits"
+                    },
+                    "full_splits": {
+                        "items": {
+                            "type": "object"
+                        },
+                        "type": "array",
+                        "title": "Full Splits",
+                        "default": []
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "dataset_name",
+                    "dataset_subset",
+                    "dataset_source",
+                    "dataset_id",
+                    "processed_dataset_id",
+                    "num_examples",
+                    "created_at",
+                    "splits"
+                ],
+                "title": "ProcessingResult"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        }
+    }
+}

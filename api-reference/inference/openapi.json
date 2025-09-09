@@ -1,0 +1,555 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Gemma Inference Service",
+        "description": "Inference service for running inference on trained models",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "https://inference-service-433968519479.us-central1.run.app"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health Check",
+                "description": "Health check endpoint",
+                "operationId": "health_check_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/inference": {
+            "post": {
+                "summary": "Inference",
+                "description": "Run inference using a trained model",
+                "operationId": "inference_inference_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/InferenceRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InferenceResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/inference/batch": {
+            "post": {
+                "summary": "Batch Inference",
+                "description": "Run batch inference using a trained model",
+                "operationId": "batch_inference_inference_batch_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BatchInferenceRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BatchInferenceResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/evaluation": {
+            "post": {
+                "summary": "Evaluation",
+                "description": "Run evaluation of a fine-tuned model on a dataset",
+                "operationId": "evaluation_evaluation_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EvaluationRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EvaluationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "BatchInferenceRequest": {
+                "properties": {
+                    "hf_token": {
+                        "type": "string",
+                        "title": "Hf Token"
+                    },
+                    "model_source": {
+                        "type": "string",
+                        "title": "Model Source"
+                    },
+                    "model_type": {
+                        "type": "string",
+                        "enum": [
+                            "adapter",
+                            "merged",
+                            "base"
+                        ],
+                        "title": "Model Type"
+                    },
+                    "base_model_id": {
+                        "type": "string",
+                        "title": "Base Model Id"
+                    },
+                    "messages": {
+                        "items": {
+                            "items": {
+                                "additionalProperties": true,
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "type": "array",
+                        "title": "Messages"
+                    },
+                    "use_vllm": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Use Vllm",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "hf_token",
+                    "model_source",
+                    "model_type",
+                    "base_model_id",
+                    "messages"
+                ],
+                "title": "BatchInferenceRequest"
+            },
+            "BatchInferenceResponse": {
+                "properties": {
+                    "results": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Results"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "results"
+                ],
+                "title": "BatchInferenceResponse"
+            },
+            "EvaluationRequest": {
+                "properties": {
+                    "hf_token": {
+                        "type": "string",
+                        "title": "Hf Token"
+                    },
+                    "model_source": {
+                        "type": "string",
+                        "title": "Model Source"
+                    },
+                    "model_type": {
+                        "type": "string",
+                        "enum": [
+                            "adapter",
+                            "merged",
+                            "base"
+                        ],
+                        "title": "Model Type"
+                    },
+                    "base_model_id": {
+                        "type": "string",
+                        "title": "Base Model Id"
+                    },
+                    "dataset_id": {
+                        "type": "string",
+                        "title": "Dataset Id"
+                    },
+                    "task_type": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "conversation",
+                                    "qa",
+                                    "summarization",
+                                    "translation",
+                                    "classification",
+                                    "general"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Task Type"
+                    },
+                    "metrics": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "rouge",
+                                        "bertscore",
+                                        "accuracy",
+                                        "exact_match",
+                                        "bleu",
+                                        "meteor",
+                                        "recall",
+                                        "precision",
+                                        "f1"
+                                    ]
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Metrics"
+                    },
+                    "max_samples": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Max Samples"
+                    },
+                    "num_sample_results": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Num Sample Results",
+                        "default": 3
+                    },
+                    "use_vllm": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Use Vllm",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "hf_token",
+                    "model_source",
+                    "model_type",
+                    "base_model_id",
+                    "dataset_id"
+                ],
+                "title": "EvaluationRequest"
+            },
+            "EvaluationResponse": {
+                "properties": {
+                    "metrics": {
+                        "additionalProperties": {
+                            "anyOf": [
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "additionalProperties": {
+                                        "type": "number"
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        },
+                        "type": "object",
+                        "title": "Metrics"
+                    },
+                    "num_samples": {
+                        "type": "integer",
+                        "title": "Num Samples"
+                    },
+                    "dataset_id": {
+                        "type": "string",
+                        "title": "Dataset Id"
+                    },
+                    "samples": {
+                        "items": {
+                            "$ref": "#/components/schemas/SampleResult"
+                        },
+                        "type": "array",
+                        "title": "Samples"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "metrics",
+                    "num_samples",
+                    "dataset_id",
+                    "samples"
+                ],
+                "title": "EvaluationResponse"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "InferenceRequest": {
+                "properties": {
+                    "hf_token": {
+                        "type": "string",
+                        "title": "Hf Token"
+                    },
+                    "model_source": {
+                        "type": "string",
+                        "title": "Model Source"
+                    },
+                    "model_type": {
+                        "type": "string",
+                        "enum": [
+                            "adapter",
+                            "merged",
+                            "base"
+                        ],
+                        "title": "Model Type"
+                    },
+                    "base_model_id": {
+                        "type": "string",
+                        "title": "Base Model Id"
+                    },
+                    "prompt": {
+                        "type": "string",
+                        "title": "Prompt"
+                    },
+                    "use_vllm": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Use Vllm",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "hf_token",
+                    "model_source",
+                    "model_type",
+                    "base_model_id",
+                    "prompt"
+                ],
+                "title": "InferenceRequest"
+            },
+            "InferenceResponse": {
+                "properties": {
+                    "result": {
+                        "type": "string",
+                        "title": "Result"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "result"
+                ],
+                "title": "InferenceResponse"
+            },
+            "SampleResult": {
+                "properties": {
+                    "prediction": {
+                        "type": "string",
+                        "title": "Prediction"
+                    },
+                    "reference": {
+                        "type": "string",
+                        "title": "Reference"
+                    },
+                    "sample_index": {
+                        "type": "integer",
+                        "title": "Sample Index"
+                    },
+                    "input": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "additionalProperties": true,
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Input"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "prediction",
+                    "reference",
+                    "sample_index"
+                ],
+                "title": "SampleResult"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        },
+        "securitySchemes": {
+            "HTTPBearer": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    }
+}
