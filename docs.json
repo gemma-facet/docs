@@ -20,15 +20,18 @@
           },
           {
             "group": "Dataset preprocessing",
-            "pages": ["dataset-preprocessing/introduction"]
+            "pages": [
+              "dataset-preprocessing/introduction",
+              "dataset-preprocessing/datasets"
+            ]
           },
           {
             "group": "Fine-tuning",
-            "pages": ["fine-tuning/introduction"]
+            "pages": ["fine-tuning/introduction", "fine-tuning/training"]
           },
           {
             "group": "Evaluation",
-            "pages": ["evaluation/introduction"]
+            "pages": ["evaluation/introduction", "evaluation/inference_export"]
           }
         ]
       },

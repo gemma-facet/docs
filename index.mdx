@@ -1,97 +1,59 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Getting Started with Facet
 ---
 
-## Setting up
+Facet is a no-code managed platform-as-a-service where you can easily fine tune the Gemma family of vision and small language models for your task and domain specific adaptations, without worrying about dataset formatting, cloud engineering, training algorithms — you can get started from scratch in a few minutes with little programming & AI experience!
 
-Get your documentation site up and running in minutes.
+## Features and Limitations
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+### What we support
 
-## Make it yours
+- Creating an account to manage your datasets, training, evaluation, etc.
 
-Design a docs site that looks great and empowers your users.
+- Augmentation and preparation of datasets from custom upload or Hugging Face Hub for language modelling, preference tuning, reinforcement learning, and multimodal tasks
 
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+- Configuring fine tuning for Gemma 3 270M, 1B, 4B, 12B, 27B, Gemma 3n E2B and E4B using supervised fine tuning (SFT), direct policy optimization (DPO), and group-related policy optimization (GRPO).
 
-## Create beautiful pages
+- Run inference & evaluation suites on fine tuned models to assess their performance
 
-Everything you need to create world-class documentation.
+- Export models in various formats (adapter, merged, GGUF) and quantizations and deploy them easily on Google Cloud Run or other providers with pre-built containers
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+### What we're not for
 
-## Need inspiration?
+- Dataset collection: while we help you augment your dataset based on uploaded sources, we do not e.g. scrape the web to collect data
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+- LLM deployment: our service will not run the deployed model for you; you should set up your own runtime / cloud project to do that — we have a tutorial for it.
+
+## Getting Started
+
+You can access our service in three common ways:
+
+1. Directly through our web interface (runs on our managed Google Cloud Platform). Create an account and access the app from the project website.
+
+2. Deploy the project on your own cloud service provider (recommended: GCP). Follow the "deploy your own service" guide. Our docker container images are served on Docker Hub. We provide Terraform to help set up the GCP project; for other providers (e.g. AWS) you can use the pre-built containers.
+
+3. Fork the project for your own customization. We're open-source — see `CONTRIBUTING.md` for contribution details.
+
+## Usage guide
+
+If you have experience fine tuning LLMs, the UI should be intuitive. If you're confused, refer to these docs:
+
+- Creating datasets — /dataset-preprocessing/datasets
+- Creating fine-tune jobs — /fine-tuning/training
+- Inference, evaluation, export — /evaluation/inference_export
+- Deploying the model — /deployment/deployment
+
+## Acknowledgements
+
+We are grateful for Hugging Face `datasets`, `transformers`, `trl`, and Unsloth `unsloth, unsloth-zoo` as the underlying backend for fine tuning, and `vLLM, llama.cpp, ollama` as inference backends.
+
+We also thank mentors at Google Cloud, Google DeepMind, and Google Summer of Code for their support.
+
+---
+
+import { Callout } from "mint-ui";
+
+<Callout title="Developer docs" type="info">
+  This guide is for platform users. For implementation details or to contribute,
+  see the `README.md` in each subfolder.
+</Callout>
