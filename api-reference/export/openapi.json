@@ -1,0 +1,674 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Gemma Export Service",
+        "description": "Export service for exporting models",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "https://export-service-433968519479.us-central1.run.app"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health Check",
+                "operationId": "Health_Check_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/exports": {
+            "get": {
+                "summary": "Get Exports",
+                "operationId": "get_exports_exports_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/JobSchema"
+                                    },
+                                    "type": "array",
+                                    "title": "Response Get Exports Exports Get"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            },
+            "post": {
+                "summary": "Export Model",
+                "operationId": "Export_Model_exports_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ExportRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExportAck"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/exports/{job_id}": {
+            "get": {
+                "summary": "Get Export Details",
+                "operationId": "Get_Export_Details_exports__job_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Job Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetExportResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ExportAck": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success"
+                    },
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "export_id": {
+                        "type": "string",
+                        "title": "Export Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "success",
+                    "message",
+                    "export_id"
+                ],
+                "title": "ExportAck"
+            },
+            "ExportArtifact": {
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "adapter",
+                            "merged",
+                            "gguf"
+                        ],
+                        "title": "Type"
+                    },
+                    "path": {
+                        "type": "string",
+                        "title": "Path"
+                    },
+                    "variant": {
+                        "type": "string",
+                        "enum": [
+                            "raw",
+                            "file",
+                            "hf"
+                        ],
+                        "title": "Variant"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "type",
+                    "path",
+                    "variant"
+                ],
+                "title": "ExportArtifact"
+            },
+            "ExportRequest": {
+                "properties": {
+                    "job_id": {
+                        "type": "string",
+                        "title": "Job Id"
+                    },
+                    "export_type": {
+                        "type": "string",
+                        "enum": [
+                            "adapter",
+                            "merged",
+                            "gguf"
+                        ],
+                        "title": "Export Type"
+                    },
+                    "destination": {
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "gcs",
+                                "hf_hub"
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Destination",
+                        "default": [
+                            "gcs"
+                        ]
+                    },
+                    "hf_token": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Hf Token"
+                    },
+                    "hf_repo_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Hf Repo Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "job_id",
+                    "export_type"
+                ],
+                "title": "ExportRequest"
+            },
+            "ExportSchema": {
+                "properties": {
+                    "export_id": {
+                        "type": "string",
+                        "title": "Export Id"
+                    },
+                    "job_id": {
+                        "type": "string",
+                        "title": "Job Id"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "adapter",
+                            "merged",
+                            "gguf"
+                        ],
+                        "title": "Type"
+                    },
+                    "destination": {
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "gcs",
+                                "hf_hub"
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Destination",
+                        "default": [
+                            "gcs"
+                        ]
+                    },
+                    "hf_repo_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Hf Repo Id"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "running",
+                            "completed",
+                            "failed"
+                        ],
+                        "title": "Status"
+                    },
+                    "message": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Message"
+                    },
+                    "artifacts": {
+                        "items": {
+                            "$ref": "#/components/schemas/ExportArtifact"
+                        },
+                        "type": "array",
+                        "title": "Artifacts"
+                    },
+                    "started_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Started At"
+                    },
+                    "finished_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Finished At"
+                    },
+                    "updated_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Updated At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "export_id",
+                    "job_id",
+                    "type",
+                    "status",
+                    "started_at"
+                ],
+                "title": "ExportSchema"
+            },
+            "GetExportResponse": {
+                "properties": {
+                    "job_id": {
+                        "type": "string",
+                        "title": "Job Id"
+                    },
+                    "job_name": {
+                        "type": "string",
+                        "title": "Job Name"
+                    },
+                    "user_id": {
+                        "type": "string",
+                        "title": "User Id"
+                    },
+                    "adapter_path": {
+                        "type": "string",
+                        "title": "Adapter Path"
+                    },
+                    "base_model_id": {
+                        "type": "string",
+                        "title": "Base Model Id"
+                    },
+                    "modality": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "text",
+                                    "vision"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Modality",
+                        "default": "text"
+                    },
+                    "artifacts": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/JobArtifacts"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "latest_export": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ExportSchema"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "job_id",
+                    "job_name",
+                    "user_id",
+                    "adapter_path",
+                    "base_model_id"
+                ],
+                "title": "GetExportResponse"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "JobArtifacts": {
+                "properties": {
+                    "file": {
+                        "$ref": "#/components/schemas/JobArtifactsFiles"
+                    },
+                    "raw": {
+                        "$ref": "#/components/schemas/JobArtifactsRaw"
+                    },
+                    "hf": {
+                        "$ref": "#/components/schemas/JobArtifactsHF"
+                    }
+                },
+                "type": "object",
+                "title": "JobArtifacts"
+            },
+            "JobArtifactsFiles": {
+                "properties": {
+                    "adapter": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Adapter"
+                    },
+                    "merged": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Merged"
+                    },
+                    "gguf": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Gguf"
+                    }
+                },
+                "type": "object",
+                "title": "JobArtifactsFiles"
+            },
+            "JobArtifactsHF": {
+                "properties": {
+                    "adapter": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Adapter"
+                    },
+                    "merged": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Merged"
+                    },
+                    "gguf": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Gguf"
+                    }
+                },
+                "type": "object",
+                "title": "JobArtifactsHF"
+            },
+            "JobArtifactsRaw": {
+                "properties": {
+                    "adapter": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Adapter"
+                    },
+                    "merged": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Merged"
+                    }
+                },
+                "type": "object",
+                "title": "JobArtifactsRaw"
+            },
+            "JobSchema": {
+                "properties": {
+                    "job_id": {
+                        "type": "string",
+                        "title": "Job Id"
+                    },
+                    "job_name": {
+                        "type": "string",
+                        "title": "Job Name"
+                    },
+                    "user_id": {
+                        "type": "string",
+                        "title": "User Id"
+                    },
+                    "adapter_path": {
+                        "type": "string",
+                        "title": "Adapter Path"
+                    },
+                    "base_model_id": {
+                        "type": "string",
+                        "title": "Base Model Id"
+                    },
+                    "modality": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "text",
+                                    "vision"
+                                ]
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Modality",
+                        "default": "text"
+                    },
+                    "artifacts": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/JobArtifacts"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "job_id",
+                    "job_name",
+                    "user_id",
+                    "adapter_path",
+                    "base_model_id"
+                ],
+                "title": "JobSchema"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        },
+        "securitySchemes": {
+            "HTTPBearer": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    }
+}

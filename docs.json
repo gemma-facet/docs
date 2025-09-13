@@ -81,6 +81,15 @@
               "api-reference/inference/batch-inference",
               "api-reference/inference/evaluation"
             ]
+          },
+          {
+            "group": "Export",
+            "pages": [
+              "api-reference/export/health",
+              "api-reference/export/get-exports",
+              "api-reference/export/get-export",
+              "api-reference/export/create-export"
+            ]
           }
         ]
       }
