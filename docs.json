@@ -16,29 +16,19 @@
         "groups": [
           {
             "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
+            "pages": ["index", "quickstart", "development"]
           },
           {
             "group": "Dataset preprocessing",
-            "pages": [
-              "dataset-preprocessing/introduction"
-            ]
+            "pages": ["dataset-preprocessing/introduction"]
           },
           {
             "group": "Fine-tuning",
-            "pages": [
-              "fine-tuning/introduction"
-            ]
+            "pages": ["fine-tuning/introduction"]
           },
           {
             "group": "Evaluation",
-            "pages": [
-              "evaluation/introduction"
-            ]
+            "pages": ["evaluation/introduction"]
           }
         ]
       },
@@ -47,9 +37,7 @@
         "groups": [
           {
             "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
+            "pages": ["api-reference/introduction"]
           },
           {
             "group": "Dataset preprocessing",
@@ -122,12 +110,7 @@
     }
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude"]
   },
   "footer": {
     "socials": {
