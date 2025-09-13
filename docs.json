@@ -32,9 +32,18 @@
           {
             "group": "Evaluation",
             "pages": ["evaluation/introduction", "evaluation/inference_export"]
+          },
+          {
+            "group": "Model deployment",
+            "pages": ["deployment/deployment"]
+          },
+          {
+            "group": "Deploy Facet AI",
+            "pages": ["app-deployment/deploy"]
           }
         ]
       },
+
       {
         "tab": "API reference",
         "groups": [
