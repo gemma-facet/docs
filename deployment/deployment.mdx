@@ -1,0 +1,516 @@
+---
+title: "Model Deployment Guide"
+description: "Deploy your fine-tuned models for production use with various deployment options"
+---
+
+# Model Deployment Guide
+
+Once your model is trained and evaluated, it's time to deploy it for production use. This guide covers multiple deployment options from local development to cloud production.
+
+## Deployment Options
+
+<CardGroup cols={2}>
+<Card title="Local Deployment" icon="laptop">
+  Run models on your local machine for development and testing
+</Card>
+
+<Card title="Cloud Deployment" icon="cloud">
+  Deploy on cloud platforms for production use
+</Card>
+
+<Card title="Container Deployment" icon="package">
+  Use Docker containers for consistent deployment
+</Card>
+
+<Card title="Serverless Deployment" icon="zap">
+  Deploy on serverless platforms for cost efficiency
+</Card>
+</CardGroup>
+
+## Local Deployment
+
+### GGUF Format (Recommended for Local)
+
+GGUF models are optimized for CPU inference and work well for local deployment.
+
+#### Using llama.cpp
+
+**Installation**:
+
+```bash
+# Clone and build llama.cpp
+git clone https://github.com/ggerganov/llama.cpp.git
+cd llama.cpp
+make
+```
+
+**Running your model**:
+
+```bash
+# Basic inference
+./llama-cli -m path/to/your/model.gguf -p "Your prompt here"
+
+# With system prompt
+./llama-cli -m path/to/your/model.gguf -sys "You are a helpful assistant." -p "What is the capital of France?"
+
+# Interactive mode
+./llama-cli -m path/to/your/model.gguf -i
+```
+
+**Advanced options**:
+
+```bash
+# Control generation parameters
+./llama-cli -m model.gguf -p "Your prompt" --temp 0.7 --top-k 40 --top-p 0.9
+
+# Use GPU acceleration (if available)
+./llama-cli -m model.gguf -p "Your prompt" --gpu-layers 20
+```
+
+#### Using Ollama
+
+**Installation**:
+
+```bash
+# Install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+**Create a Modelfile**:
+
+```dockerfile
+FROM path/to/your/model.gguf
+
+SYSTEM """
+You are a helpful assistant specialized in answering questions about geography.
+"""
+
+PARAMETER temperature 0.7
+PARAMETER top_k 40
+PARAMETER top_p 0.9
+```
+
+**Deploy your model**:
+
+```bash
+# Create the model
+ollama create my-geography-assistant -f Modelfile
+
+# Run the model
+ollama run my-geography-assistant
+
+# If model is on Hugging Face Hub
+ollama run hf.co/username/model-name:q8_0
+```
+
+**API usage**:
+
+```bash
+# Start Ollama server
+ollama serve
+
+# Make API calls
+curl http://localhost:11434/api/generate -d '{
+  "model": "my-geography-assistant",
+  "prompt": "What is the capital of France?",
+  "stream": false
+}'
+```
+
+### HuggingFace Transformers (Python)
+
+For more control and integration with Python applications:
+
+```python
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+
+# Load your fine-tuned model
+model_name = "username/your-fine-tuned-model"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    torch_dtype=torch.float16,
+    device_map="auto"
+)
+
+# Generate responses
+def generate_response(prompt, max_length=100):
+    inputs = tokenizer(prompt, return_tensors="pt")
+    with torch.no_grad():
+        outputs = model.generate(
+            **inputs,
+            max_length=max_length,
+            temperature=0.7,
+            do_sample=True,
+            pad_token_id=tokenizer.eos_token_id
+        )
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+# Example usage
+response = generate_response("What is the capital of France?")
+print(response)
+```
+
+## Cloud Deployment
+
+### Google Cloud Run (vLLM)
+
+Deploy your model on Google Cloud Run using vLLM for high-performance inference.
+
+#### Prerequisites
+
+- Google Cloud Project with billing enabled
+- Docker installed locally
+- Google Cloud SDK installed
+
+#### Step 1: Prepare Your Model
+
+Export your model in merged format and upload to Google Cloud Storage:
+
+```bash
+# Upload your model to GCS
+gsutil cp -r your-model-directory gs://your-bucket/models/
+```
+
+#### Step 2: Create Dockerfile
+
+```dockerfile
+FROM vllm/vllm-openai:latest
+
+# Copy your model
+COPY model/ /app/model/
+
+# Set environment variables
+ENV MODEL_NAME=your-model-name
+ENV MODEL_PATH=/app/model
+ENV HOST=0.0.0.0
+ENV PORT=8000
+
+# Expose port
+EXPOSE 8000
+
+# Start the server
+CMD ["python", "-m", "vllm.entrypoints.openai.api_server", \
+     "--model", "/app/model", \
+     "--host", "0.0.0.0", \
+     "--port", "8000"]
+```
+
+#### Step 3: Build and Deploy
+
+```bash
+# Build the container
+gcloud builds submit --tag gcr.io/your-project/vllm-deployment
+
+# Deploy to Cloud Run
+gcloud run deploy vllm-service \
+  --image gcr.io/your-project/vllm-deployment \
+  --platform managed \
+  --region us-central1 \
+  --memory 8Gi \
+  --cpu 4 \
+  --min-instances 0 \
+  --max-instances 10 \
+  --allow-unauthenticated
+```
+
+#### Step 4: Test Your Deployment
+
+```bash
+# Get the service URL
+SERVICE_URL=$(gcloud run services describe vllm-service --region=us-central1 --format="value(status.url)")
+
+# Test the API
+curl -X POST "$SERVICE_URL/v1/chat/completions" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "your-model",
+    "messages": [
+      {"role": "user", "content": "What is the capital of France?"}
+    ]
+  }'
+```
+
+> You can also deploy your model on AWS, Azure, or other cloud platforms using vLLM or SGLang.
+
+## Container Deployment
+
+### Docker Compose
+
+Create a `docker-compose.yml` for easy local deployment:
+
+```yaml
+version: "3.8"
+services:
+  model-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_NAME=your-model
+      - MODEL_PATH=/app/model
+    volumes:
+      - ./model:/app/model
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - model-api
+```
+
+### Kubernetes Deployment
+
+Deploy your model on Kubernetes for scalable production use:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: model-api
+  template:
+    metadata:
+      labels:
+        app: model-api
+    spec:
+      containers:
+        - name: model-api
+          image: your-registry/model-api:latest
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+            limits:
+              memory: "8Gi"
+              cpu: "4"
+          env:
+            - name: MODEL_NAME
+              value: "your-model"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: model-service
+spec:
+  selector:
+    app: model-api
+  ports:
+    - port: 80
+      targetPort: 8000
+  type: LoadBalancer
+```
+
+## Performance Optimization
+
+### Model Optimization
+
+<Tips>
+<Tip title="Quantization">
+  Use quantized models (GGUF) for better performance and lower memory usage.
+</Tip>
+
+<Tip title="Batch Processing">
+  Process multiple requests together to improve throughput.
+</Tip>
+
+<Tip title="Caching">
+  Cache model responses for repeated queries to reduce compute costs.
+</Tip>
+
+<Tip title="Load Balancing">
+  Use multiple model instances behind a load balancer for high availability.
+</Tip>
+</Tips>
+
+### Infrastructure Optimization
+
+<Tips>
+<Tip title="Right-sizing">
+  Choose instance types that match your model's memory and compute requirements.
+</Tip>
+
+<Tip title="Auto-scaling">
+  Configure auto-scaling based on request volume to optimize costs.
+</Tip>
+
+<Tip title="CDN">
+  Use a CDN for static content and API responses to reduce latency.
+</Tip>
+
+<Tip title="Monitoring">
+  Set up monitoring and alerting to track performance and costs.
+</Tip>
+</Tips>
+
+## Monitoring and Maintenance
+
+### Health Checks
+
+Implement health checks to monitor your deployment:
+
+```python
+from flask import Flask, jsonify
+import torch
+
+app = Flask(__name__)
+
+@app.route('/health')
+def health_check():
+    try:
+        # Check if model is loaded and responsive
+        test_input = "Test prompt"
+        # Run a quick inference to verify model works
+        # ... model inference code ...
+
+        return jsonify({
+            "status": "healthy",
+            "model_loaded": True,
+            "gpu_available": torch.cuda.is_available()
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "unhealthy",
+            "error": str(e)
+        }), 500
+```
+
+### Logging and Metrics
+
+Set up comprehensive logging and metrics:
+
+```python
+import logging
+import time
+from functools import wraps
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def log_inference(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        try:
+            result = func(*args, **kwargs)
+            duration = time.time() - start_time
+            logger.info(f"Inference completed in {duration:.2f}s")
+            return result
+        except Exception as e:
+            logger.error(f"Inference failed: {str(e)}")
+            raise
+    return wrapper
+
+@log_inference
+def generate_response(prompt):
+    # Your inference code here
+    pass
+```
+
+## Security Considerations
+
+### API Security
+
+<Tips>
+<Tip title="Authentication">
+  Implement API key authentication or OAuth for production deployments.
+</Tip>
+
+<Tip title="Rate Limiting">
+  Add rate limiting to prevent abuse and ensure fair usage.
+</Tip>
+
+<Tip title="Input Validation">
+  Validate and sanitize all inputs to prevent injection attacks.
+</Tip>
+
+<Tip title="HTTPS">
+  Always use HTTPS in production to encrypt data in transit.
+</Tip>
+</Tips>
+
+### Model Security
+
+<Tips>
+<Tip title="Model Access">
+  Restrict access to your model files and API endpoints.
+</Tip>
+
+<Tip title="Data Privacy">
+  Ensure user data is handled according to privacy regulations.
+</Tip>
+
+<Tip title="Audit Logging">
+  Log all API calls and model usage for security auditing.
+</Tip>
+
+<Tip title="Regular Updates">
+  Keep your deployment infrastructure and dependencies updated.
+</Tip>
+</Tips>
+
+## Troubleshooting
+
+### Common Issues
+
+<AccordionGroup>
+<Accordion title="Model Loading Errors">
+  **Symptoms**: Model fails to load or returns errors
+  
+  **Solutions**:
+  - Check model file integrity
+  - Verify model format compatibility
+  - Ensure sufficient memory allocation
+  - Check file permissions
+</Accordion>
+
+<Accordion title="Performance Issues">
+  **Symptoms**: Slow inference, high latency, timeouts **Solutions**: - Optimize
+  model quantization - Increase compute resources - Implement caching - Use
+  batch processing
+</Accordion>
+
+<Accordion title="Memory Issues">
+  **Symptoms**: Out of memory errors, crashes **Solutions**: - Use quantized
+  models - Increase memory allocation - Implement model sharding - Use smaller
+  batch sizes
+</Accordion>
+
+<Accordion title="Network Issues">
+  **Symptoms**: Connection timeouts, API failures
+  
+  **Solutions**:
+  - Check network connectivity
+  - Verify firewall settings
+  - Implement retry logic
+  - Use load balancing
+</Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+After deploying your model:
+
+1. **Monitor Performance**: Track metrics and user feedback
+2. **Scale as Needed**: Adjust resources based on usage patterns
+3. **Iterate and Improve**: Use production data to improve your model
+4. **Maintain Security**: Keep your deployment secure and updated
+
+Your model is now ready for production use! Monitor its performance and gather feedback to continue improving your AI system.

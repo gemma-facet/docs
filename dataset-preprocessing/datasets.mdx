@@ -1,0 +1,205 @@
+---
+title: "Working with Datasets"
+description: "Complete guide to uploading, processing, and managing datasets in Facet"
+---
+
+This guide walks you through everything you need to know about working with datasets in Facet, from uploading your data to configuring field mappings and processing options.
+
+## Uploading Your Dataset
+
+### Supported File Formats
+
+Facet supports a wide range of data formats for maximum flexibility:
+
+<CardGroup cols={2}>
+<Card title="CSV Files" icon="file-text">
+  **Best for**: Structured data, spreadsheets, tabular data
+  
+  - Comma-separated values
+  - Headers in first row
+  - UTF-8 encoding recommended
+</Card>
+
+<Card title="JSON/JSONL" icon="code">
+  **Best for**: Conversational data, complex structures - JSON: Single object
+  with array of examples - JSONL: One JSON object per line - Nested structures
+  supported
+</Card>
+
+<Card title="Parquet" icon="database">
+  **Best for**: Large datasets, efficient storage - Columnar format - Fast
+  loading and processing - Compressed storage
+</Card>
+
+<Card title="Excel Files" icon="table">
+  **Best for**: Business data, multiple sheets
+  
+  - .xlsx and .xls formats
+  - Multiple sheets supported
+  - First sheet used by default
+</Card>
+</CardGroup>
+
+### File Size Limits
+
+- **Maximum file size**: 100MB per upload
+- **Recommended size**: 10-50MB for optimal processing speed
+- **Large datasets**: Consider splitting into multiple files or using Hugging Face Hub
+
+<Warning>
+  Very large files may take longer to process. Consider using Hugging Face Hub
+  for datasets over 100MB.
+</Warning>
+
+## Using Hugging Face Datasets
+
+### Public Datasets
+
+Import datasets directly from Hugging Face Hub using their repository name:
+
+```text
+Examples:
+- microsoft/DialoGPT-medium
+- HuggingFaceH4/ultrachat_200k
+- tatsu-lab/alpaca
+```
+
+<Steps>
+<Step title="Find a Dataset">
+  Browse [Hugging Face Datasets](https://huggingface.co/datasets) to find one that fits your needs.
+  
+  <Tip>
+  Look for datasets with conversation or instruction-following formats for best results.
+  </Tip>
+</Step>
+
+<Step title="Copy the Repository Name">
+  Use the format `organization/dataset-name` from the dataset page.
+  <Note>
+    You don't need to include the full URL, just the repository identifier.
+  </Note>
+</Step>
+
+<Step title="Select Subset (Optional)">
+  If the dataset has multiple subsets, choose the one you want to use.
+  
+  <Check>
+  Common subsets include "train", "test", "validation", or specific task names.
+  </Check>
+</Step>
+</Steps>
+
+### Private Datasets
+
+For private repositories, you'll need to provide your Hugging Face token:
+
+1. Go to [Hugging Face Settings](https://huggingface.co/settings/tokens)
+2. Create a new token with "Read" permissions
+3. Enter the token when prompted during dataset import
+
+<Warning>
+  Keep your Hugging Face token secure and never share it publicly.
+</Warning>
+
+## Configuring Field Mappings
+
+Field mappings tell Facet how to transform your data into the conversational format needed for training.
+
+### Understanding Field Types
+
+<Tabs>
+<Tab title="Template Fields">
+  **Use for**: Static text, instructions, prompts
+  
+  ```json
+  {
+    "type": "template",
+    "value": "You are a helpful assistant. Answer the following question:"
+  }
+  ```
+  
+  <Note>
+  Template fields use fixed text that doesn't change between examples.
+  </Note>
+</Tab>
+
+<Tab title="Column Fields">
+  **Use for**: Data from your dataset columns
+  
+  ```json
+  {
+    "type": "column", 
+    "value": "question"
+  }
+  ```
+  
+  <Check>
+  Column fields pull data directly from your dataset's columns.
+  </Check>
+</Tab>
+
+<Tab title="Image Fields">
+  **Use for**: Images in your dataset
+  
+  ```json
+  {
+    "type": "image",
+    "value": "image_column"
+  }
+  ```
+  
+  <Tip>
+  Images are automatically processed and can be included in user messages.
+  </Tip>
+</Tab>
+</Tabs>
+
+## Processing Modes Explained
+
+### Language Modeling Mode
+
+**Best for**: General conversation, instruction following, text generation
+
+This mode creates conversations with three roles:
+
+- **System**: Instructions or context for the model
+- **User**: Questions, prompts, or input from the user
+- **Assistant**: Model's responses
+
+### Prompt-Only Mode
+
+**Best for**: Reasoning tasks, math problems, structured thinking
+
+This mode creates prompts without assistant responses, perfect for GRPO training where the model learns to reason step-by-step.
+
+### Preference Tuning Mode
+
+**Best for**: Aligning models with human preferences, RLHF
+
+This mode creates data with chosen and rejected responses for preference-based training algorithms.
+
+## Vision Dataset Configuration
+
+When working with images, Facet automatically detects image fields and enables vision processing.
+
+### Supported Image Formats
+
+- **File paths**: Direct references to image files in your dataset
+- **Base64 encoded**: Images embedded as base64 strings
+- **Hugging Face format**: Images with `bytes` field (from HF datasets)
+
+<Note>
+  Images are always added to user messages only, and you can include multiple
+  images in a single message.
+</Note>
+
+## Next Steps
+
+Once your dataset is processed and ready:
+
+1. **Start Training**: Use your processed dataset to fine-tune a Gemma model
+2. **Review Results**: Check the training progress and evaluation metrics
+3. **Export Model**: Download your fine-tuned model in various formats
+4. **Deploy**: Set up your model for production use
+
+Ready to start training? Head to the [Fine-tuning guide](/fine-tuning/introduction) to learn how to train your model.

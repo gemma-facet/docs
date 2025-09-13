@@ -16,40 +16,40 @@
         "groups": [
           {
             "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
+            "pages": ["index", "quickstart", "development"]
           },
           {
             "group": "Dataset preprocessing",
             "pages": [
-              "dataset-preprocessing/introduction"
+              "dataset-preprocessing/introduction",
+              "dataset-preprocessing/datasets"
             ]
           },
           {
             "group": "Fine-tuning",
-            "pages": [
-              "fine-tuning/introduction"
-            ]
+            "pages": ["fine-tuning/introduction", "fine-tuning/training"]
           },
           {
             "group": "Evaluation",
-            "pages": [
-              "evaluation/introduction"
-            ]
+            "pages": ["evaluation/introduction", "evaluation/inference_export"]
+          },
+          {
+            "group": "Model deployment",
+            "pages": ["deployment/deployment"]
+          },
+          {
+            "group": "Deploy Facet AI",
+            "pages": ["app-deployment/deploy"]
           }
         ]
       },
+
       {
         "tab": "API reference",
         "groups": [
           {
             "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
+            "pages": ["api-reference/introduction"]
           },
           {
             "group": "Dataset preprocessing",
@@ -122,12 +122,7 @@
     }
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude"]
   },
   "footer": {
     "socials": {

@@ -1,0 +1,416 @@
+---
+title: "Running Inference & Exporting Models"
+description: "Complete guide to testing your models and exporting them for deployment"
+---
+
+This guide covers everything you need to know about testing your fine-tuned models and exporting them in various formats for deployment.
+
+## Running Single Inference
+
+Test your model with individual prompts to see how it responds in real-time.
+
+### Basic Text Inference
+
+For simple text prompts, use the single inference endpoint:
+
+```json
+{
+  "hf_token": "your_huggingface_token",
+  "model_source": "gs://bucket/trained_adapters/job_123/adapter",
+  "model_type": "adapter",
+  "base_model_id": "google/gemma-3-2b-pt",
+  "prompt": "What is the capital of France?"
+}
+```
+
+**Response**:
+
+```json
+{
+  "result": "The capital of France is Paris."
+}
+```
+
+### Conversation Inference
+
+For multi-turn conversations, use the batch inference endpoint with a single conversation:
+
+```json
+{
+  "hf_token": "your_huggingface_token",
+  "model_source": "username/model-name",
+  "model_type": "merged",
+  "base_model_id": "google/gemma-3-2b-pt",
+  "messages": [
+    [
+      { "role": "system", "content": "You are a helpful assistant." },
+      {
+        "role": "user",
+        "content": "Explain quantum computing in simple terms."
+      }
+    ]
+  ]
+}
+```
+
+### Vision Inference
+
+For multimodal tasks with images, include base64-encoded images:
+
+```json
+{
+  "hf_token": "your_huggingface_token",
+  "model_source": "username/model-name",
+  "model_type": "adapter",
+  "base_model_id": "google/gemma-3-2b-pt",
+  "messages": [
+    [
+      {
+        "role": "user",
+        "content": [
+          { "type": "text", "text": "What do you see in this image?" },
+          {
+            "type": "image",
+            "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+          }
+        ]
+      }
+    ]
+  ]
+}
+```
+
+## Batch Evaluation
+
+Run comprehensive evaluations on your test datasets to get detailed performance metrics.
+
+### Using Task Types (Recommended)
+
+Let the system automatically select appropriate metrics for your task:
+
+```json
+{
+  "hf_token": "your_huggingface_token",
+  "model_source": "username/model-name",
+  "model_type": "merged",
+  "base_model_id": "google/gemma-3-2b-pt",
+  "dataset_id": "processed_dataset_123",
+  "task_type": "conversation",
+  "num_sample_results": 5
+}
+```
+
+**Available Task Types**:
+
+- `conversation` → BERTScore, ROUGE
+- `qa` → Exact match, BERTScore
+- `summarization` → ROUGE, BERTScore
+- `translation` → BLEU, METEOR
+- `classification` → Accuracy, Precision, Recall, F1
+- `general` → BERTScore, ROUGE
+
+### Using Specific Metrics
+
+For more control, specify exact metrics to compute:
+
+```json
+{
+  "hf_token": "your_huggingface_token",
+  "model_source": "username/model-name",
+  "model_type": "adapter",
+  "base_model_id": "google/gemma-3-2b-pt",
+  "dataset_id": "processed_dataset_123",
+  "metrics": ["bertscore", "rouge", "exact_match"],
+  "num_sample_results": 10
+}
+```
+
+**Available Metrics**:
+
+- `bertscore`: Semantic similarity (⭐ **Recommended for LLMs**)
+- `rouge`: Text overlap and summarization quality
+- `exact_match`: Perfect string matching
+- `accuracy`: Token-level accuracy
+- `precision`, `recall`, `f1`: Classification metrics
+- `bleu`, `meteor`: Translation metrics
+
+### Evaluation Response
+
+```json
+{
+  "metrics": {
+    "bertscore_f1": 0.85,
+    "rouge_l": 0.82,
+    "rouge_1": 0.85,
+    "rouge_2": 0.78,
+    "exact_match": 0.65
+  },
+  "samples": [
+    {
+      "prediction": "The capital of France is Paris.",
+      "reference": "Paris is the capital of France.",
+      "sample_index": 42
+    }
+  ],
+  "num_samples": 1000,
+  "dataset_id": "processed_dataset_123",
+  "task_type": "conversation"
+}
+```
+
+## Model Export
+
+Export your fine-tuned models in various formats for different deployment scenarios.
+
+### Export Formats
+
+<Tabs>
+<Tab title="Adapter Format">
+  **Best for**: LoRA/QLoRA models, experimentation, combining adapters
+  
+  **Characteristics**:
+  - Small file size (few MB)
+  - Requires base model to run
+  - Easy to merge with other adapters
+  - Good for A/B testing different fine-tunings
+  
+  **Configuration**:
+  ```json
+  {
+    "export_id": "exp_123",
+    "job_id": "job_456",
+    "type": "adapter",
+    "destination": ["gcs", "hf_hub"],
+    "hf_repo_id": "username/my-adapter"
+  }
+  ```
+</Tab>
+
+<Tab title="Merged Format">
+  **Best for**: Standalone deployment, vLLM inference, production use
+  
+  **Characteristics**:
+  - Self-contained model
+  - Larger file size (several GB)
+  - Ready for immediate deployment
+  - Compatible with most inference engines
+  
+  **Configuration**:
+  ```json
+  {
+    "export_id": "exp_124",
+    "job_id": "job_457",
+    "type": "merged",
+    "destination": ["gcs", "hf_hub"],
+    "hf_repo_id": "username/my-merged-model"
+  }
+  ```
+</Tab>
+
+<Tab title="GGUF Format">
+  **Best for**: CPU inference, local deployment, resource-constrained environments
+  
+  **Characteristics**:
+  - Quantized for efficiency
+  - CPU-optimized
+  - Compatible with llama.cpp, ollama
+  - Good for edge deployment
+  
+  **Configuration**:
+  ```json
+  {
+    "export_id": "exp_125",
+    "job_id": "job_458",
+    "type": "gguf",
+    "destination": ["gcs", "hf_hub"],
+    "hf_repo_id": "username/my-model-gguf",
+    "gguf_quantization": "q8_0"
+  }
+  ```
+</Tab>
+</Tabs>
+
+### Export Destinations
+
+<CardGroup cols={2}>
+<Card title="Google Cloud Storage" icon="cloud">
+  **Best for**: Downloading models, GCP deployments
+  
+  - Download as zip files
+  - Direct integration with GCP services
+  - Good for private model storage
+</Card>
+
+<Card title="Hugging Face Hub" icon="database">
+  **Best for**: Sharing models, public deployment
+  
+  - Publish to HF Hub for sharing
+  - Easy integration with HF ecosystem
+  - Good for open-source projects
+</Card>
+</CardGroup>
+
+### GGUF Quantization Options
+
+Choose the right quantization level for your needs:
+
+<Tabs>
+<Tab title="q8_0 (Recommended)">
+  **Best for**: Most use cases, good balance of quality and efficiency
+  
+  - 8-bit quantization
+  - Good quality retention
+  - Reasonable file size
+  - Fast inference
+</Tab>
+
+<Tab title="q4_k_m">
+  **Best for**: Maximum compression, resource-constrained environments - 4-bit
+  quantization - Smaller file size - Some quality loss - Very fast inference
+</Tab>
+
+<Tab title="f16">
+  **Best for**: Maximum quality, when file size isn't critical
+  
+  - 16-bit floating point
+  - Best quality
+  - Larger file size
+  - Slower inference
+</Tab>
+</Tabs>
+
+## Inference Providers
+
+Facet supports multiple inference backends for different use cases:
+
+### HuggingFace Transformers
+
+- **Use case**: Standard inference, most compatible
+- **Supports**: All model types and modalities
+- **Best for**: General use, testing, development
+
+### Unsloth
+
+- **Use case**: Optimized inference for Unsloth-trained models
+- **Supports**: Unsloth-optimized models
+- **Best for**: Models trained with Unsloth framework
+
+### vLLM
+
+- **Use case**: High-performance production inference
+- **Supports**: Merged models and adapters (via LoRA)
+- **Best for**: High-throughput production deployment
+
+## Best Practices
+
+### Inference Testing
+
+<Tips>
+<Tip title="Start Simple">
+  Begin with basic text prompts to verify your model works correctly.
+</Tip>
+
+<Tip title="Test Edge Cases">
+  Try prompts that might be challenging or outside your training data.
+</Tip>
+
+<Tip title="Compare with Base Model">
+  Test the same prompts with the base model to see improvements.
+</Tip>
+
+<Tip title="Use Diverse Prompts">
+  Test with various prompt styles and formats to ensure robustness.
+</Tip>
+</Tips>
+
+### Evaluation Strategy
+
+<Tips>
+<Tip title="Choose Appropriate Metrics">
+  Select metrics that align with your task objectives and success criteria.
+</Tip>
+
+<Tip title="Use Multiple Metrics">
+  Combine different types of metrics for a comprehensive assessment.
+</Tip>
+
+<Tip title="Analyze Sample Results">
+  Look at individual predictions to understand model behavior.
+</Tip>
+
+<Tip title="Test on Held-out Data">
+  Use data the model hasn't seen during training for unbiased evaluation.
+</Tip>
+</Tips>
+
+### Export Strategy
+
+<Tips>
+<Tip title="Choose the Right Format">
+  Select export format based on your deployment needs and constraints.
+</Tip>
+
+<Tip title="Consider File Size">
+  Balance model quality with file size requirements for your deployment.
+</Tip>
+
+<Tip title="Test After Export">
+  Verify your exported model works correctly in your target environment.
+</Tip>
+
+<Tip title="Document Your Model">
+  Include model cards and documentation when sharing on HF Hub.
+</Tip>
+</Tips>
+
+## Troubleshooting
+
+### Common Issues
+
+<AccordionGroup>
+<Accordion title="Inference Fails">
+  **Possible causes**:
+  - Invalid model source path
+  - Incorrect model type
+  - Missing base model ID
+  - Authentication issues
+  
+  **Solutions**:
+  - Verify model source path and type
+  - Check base model ID matches training
+  - Ensure valid HuggingFace token
+  - Check model accessibility
+</Accordion>
+
+<Accordion title="Evaluation Errors">
+  **Possible causes**: - Dataset format mismatch - Missing reference data -
+  Invalid metric configuration - Memory issues **Solutions**: - Verify dataset
+  format and content - Check metric compatibility - Reduce batch size if OOM -
+  Use appropriate task type
+</Accordion>
+
+<Accordion title="Export Failures">
+  **Possible causes**:
+  - Model not found
+  - Insufficient permissions
+  - Export format not supported
+  - Network issues
+  
+  **Solutions**:
+  - Verify training job completed
+  - Check export permissions
+  - Use supported format for model type
+  - Retry with stable connection
+</Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+After testing and exporting your model:
+
+1. **Deploy Your Model**: Set up your model for production use
+2. **Monitor Performance**: Track model performance in production
+3. **Collect Feedback**: Gather user feedback to improve your model
+4. **Iterate**: Use insights to refine your model with additional training
+
+Ready to deploy? Head to the [Deployment guide](/deployment/deployment) to learn how to set up your model for production use.
