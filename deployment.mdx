@@ -1,0 +1,331 @@
+---
+title: "Deploy Facet AI"
+description: "Deploy Facet AI on your own cloud infrastructure for production use"
+---
+
+## Overview
+
+Deploying Facet AI on your own infrastructure gives you complete control over your fine-tuning platform, data, and costs. This guide covers deploying both the backend services and frontend application.
+
+<Warning>
+**Production Deployment**: This deployment is recommended for production use, enterprise customers, or when you need full control over your infrastructure.
+</Warning>
+
+## Architecture
+
+Facet AI consists of two main components:
+
+<CardGroup cols={2}>
+<Card title="Backend Services" icon="server">
+  - Dataset preprocessing microservice
+  - Training orchestration service
+  - Inference and evaluation service
+  - Model export service
+  - API Gateway for unified access
+</Card>
+
+<Card title="Frontend Application" icon="square-mouse-pointer">
+  - Next.js web application
+  - User authentication and dashboard
+  - Model management interface
+  - Real-time training monitoring
+</Card>
+</CardGroup>
+
+## Prerequisites
+
+<Steps>
+<Step title="Google Cloud Platform Setup">
+  <Tabs>
+  <Tab title="Create GCP Project">
+    1. Go to [Google Cloud Console](https://console.cloud.google.com)
+    2. Create a new project or select an existing one
+    3. Note your project ID for later use
+    4. Enable billing on your project
+
+    <Warning>
+    Some APIs require billing to be enabled. Make sure billing is active before deployment.
+    </Warning>
+  </Tab>
+
+  <Tab title="Install Required Tools">
+    Install the following tools on your local machine:
+
+    ```bash
+    # Install Terraform
+    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+    sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+    sudo apt-get update && sudo apt-get install terraform
+
+    # Install Google Cloud CLI
+    curl https://sdk.cloud.google.com | bash
+    exec -l $SHELL
+    ```
+  </Tab>
+  </Tabs>
+</Step>
+
+<Step title="Authentication Setup">
+  1. Authenticate with Google Cloud:
+     ```bash
+     gcloud auth login
+     gcloud auth application-default login
+     ```
+
+  2. Set your project:
+     ```bash
+     gcloud config set project YOUR_PROJECT_ID
+     ```
+
+  3. Verify you have the correct permissions (Owner or Editor role)
+
+  <Check>
+  Verify setup with: `gcloud auth list` and `gcloud config get-value project`
+  </Check>
+</Step>
+</Steps>
+
+## Deploy Backend Services
+
+<Steps>
+<Step title="Clone and Setup">
+  1. Clone the cloud services repository:
+     ```bash
+     git clone https://github.com/gemma-facet/cloud-services
+     cd cloud-services/infrastructure
+     ```
+
+  2. Copy the example configuration:
+     ```bash
+     cp terraform.tfvars.example terraform.tfvars
+     ```
+
+  3. Edit `terraform.tfvars` with your project details:
+     ```hcl
+     project_id = "your-project-id"
+     region = "us-central1"
+     ```
+</Step>
+
+<Step title="Initialize and Deploy">
+  Use our automated deployment script:
+
+  ```bash
+  make init
+  make full-deploy
+  make output
+  ```
+
+  <Info>
+  The `make full-deploy` command performs these steps automatically:
+  1. Deploy core infrastructure (APIs, IAM, Artifact Registry, Storage, Firebase)
+  2. Build and push Docker images to Artifact Registry
+  3. Deploy microservices and setup networking (Cloud Run and API Gateway)
+  </Info>
+
+  <Tip>
+  This process typically takes 15-30 minutes depending on your region and project setup.
+  </Tip>
+</Step>
+
+<Step title="Configure Authentication">
+  1. Go to [Firebase Console](https://console.firebase.google.com)
+  2. Select your project
+  3. Navigate to **Authentication** → **Sign-in method**
+  4. Enable **Google** sign-in provider
+  5. Copy the OAuth client ID and other Firebase config values
+
+  <Warning>
+  You must manually enable Google authentication in Firebase Console as this cannot be automated via Terraform.
+  </Warning>
+</Step>
+</Steps>
+
+## Deploy Frontend Application
+
+<Steps>
+<Step title="Clone Frontend Repository">
+  ```bash
+  git clone https://github.com/gemma-facet/frontend-ui
+  cd frontend-ui
+  ```
+</Step>
+
+<Step title="Configure Environment Variables">
+  1. Copy the example environment file:
+     ```bash
+     cp .env.example .env
+     ```
+
+  2. Fill in the environment variables from your backend deployment:
+     ```bash
+     # From terraform output
+     INFERENCE_SERVICE_URL=https://your-inference-service-url
+     API_GATEWAY_URL=https://your-api-gateway-url
+
+     # From Firebase Console
+     NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
+     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+     NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+     NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
+     NEXT_PUBLIC_FIREBASE_APP_ID=your-firebase-app-id
+     ```
+</Step>
+
+<Step title="Deploy to Your Platform">
+  <Tabs>
+  <Tab title="Vercel (Recommended)">
+    ```bash
+    # Install Vercel CLI
+    npm i -g vercel
+
+    # Deploy
+    vercel deploy --prod
+    ```
+
+    <Tip>
+    Vercel provides automatic deployments from GitHub and excellent performance for Next.js applications.
+    </Tip>
+  </Tab>
+
+  <Tab title="Google Cloud Run">
+    ```bash
+    # Build the application
+    docker build -t gcr.io/YOUR_PROJECT_ID/facet-frontend .
+
+    # Push to Container Registry
+    docker push gcr.io/YOUR_PROJECT_ID/facet-frontend
+
+    # Deploy to Cloud Run
+    gcloud run deploy facet-frontend \
+      --image gcr.io/YOUR_PROJECT_ID/facet-frontend \
+      --platform managed \
+      --region us-central1 \
+      --allow-unauthenticated
+    ```
+  </Tab>
+
+  <Tab title="AWS (ECS/Lambda)">
+    ```bash
+    # Build for AWS
+    npm run build
+
+    # Deploy using AWS CLI or CDK
+    aws s3 sync out/ s3://your-bucket-name
+    ```
+  </Tab>
+  </Tabs>
+</Step>
+</Steps>
+
+## Infrastructure Management
+
+### Available Commands
+
+<AccordionGroup>
+<Accordion title="Deployment Commands">
+  ```bash
+  make init           # Initialize Terraform
+  make check          # Validate configuration
+  make full-deploy    # Complete deployment workflow
+  make deploy-core    # Deploy core infrastructure only
+  make deploy-services # Deploy microservices only
+  ```
+</Accordion>
+
+<Accordion title="Management Commands">
+  ```bash
+  make plan           # Plan infrastructure changes
+  make output         # Show deployment outputs
+  make destroy        # Destroy all infrastructure
+  make help           # Show all available commands
+  ```
+</Accordion>
+
+<Accordion title="Build Commands">
+  ```bash
+  make build          # Build all containers
+  make deploy         # Deploy infrastructure only
+  ```
+</Accordion>
+</AccordionGroup>
+
+### Infrastructure Components
+
+<CardGroup cols={2}>
+<Card title="Core Infrastructure" icon="building">
+  - Google Cloud APIs and IAM roles
+  - Artifact Registry for container images
+  - Service accounts and permissions
+</Card>
+
+<Card title="Storage Layer" icon="database">
+  - Google Cloud Storage buckets
+  - Firestore database for metadata
+  - Persistent disk volumes
+</Card>
+
+<Card title="Compute Services" icon="server">
+  - Cloud Run services for microservices
+  - Cloud Build for container building
+  - Cloud Scheduler for batch jobs
+</Card>
+
+<Card title="Networking" icon="network-wired">
+  - API Gateway for unified access
+  - VPC and firewall rules
+  - Load balancing and SSL certificates
+</Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Deployment Issues">
+  **Terraform errors:**
+  - Ensure you have Owner/Editor role on the GCP project
+  - Check that billing is enabled
+  - Verify all required APIs are enabled
+
+  **Authentication errors:**
+  - Run `gcloud auth application-default login`
+  - Set quota project: `gcloud auth application-default set-quota-project YOUR_PROJECT_ID`
+</Accordion>
+
+<Accordion title="Service Issues">
+  **Cloud Run services not starting:**
+  - Check container logs in Cloud Console
+  - Verify environment variables are set correctly
+  - Ensure service account has proper permissions
+
+  **Firebase authentication not working:**
+  - Enable Google sign-in in Firebase Console
+  - Verify OAuth client configuration
+  - Check Firebase config in frontend environment variables
+</Accordion>
+
+<Accordion title="Resource Conflicts">
+  **Resources already exist:**
+  ```bash
+  # Import existing resources to Terraform
+  terraform import module.compute.google_cloud_run_v2_service.preprocessing_service \
+    projects/YOUR_PROJECT_ID/locations/us-central1/services/preprocessing-service
+  ```
+</Accordion>
+</AccordionGroup>
+
+## Security Considerations
+
+<Warning>
+**Important Security Notes:**
+- Never commit API keys or secrets to version control
+- Use Google Secret Manager for sensitive configuration
+- Enable audit logging for all services
+- Regularly rotate service account keys
+- Implement proper network security rules
+</Warning>
+
+<Note>
+**Need help with deployment?** Check our [GitHub repository](https://github.com/gemma-facet/cloud-services) for the latest updates and open an issue if you encounter problems.
+</Note>

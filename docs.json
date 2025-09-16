@@ -12,11 +12,15 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "User Guide",
         "groups": [
           {
             "group": "Getting started",
-            "pages": ["index", "quickstart", "development"]
+            "pages": ["index", "quickstart", "deployment"]
+          },
+          {
+            "group": "End-to-end Tutorials",
+            "pages": ["tutorials/index"]
           },
           {
             "group": "Dataset preprocessing",
@@ -40,6 +44,16 @@
           {
             "group": "Deploy Facet AI",
             "pages": ["app-deployment/deploy"]
+          }
+        ]
+      },
+
+      {
+        "tab": "Developer Guide",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": ["developer/index"]
           }
         ]
       },
