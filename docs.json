@@ -27,7 +27,7 @@
             "pages": ["fine-tuning/introduction", "fine-tuning/training"]
           },
           {
-            "group": "Evaluation",
+            "group": "Evaluation & Export",
             "pages": ["evaluation/introduction", "evaluation/inference_export"]
           },
           {
@@ -57,12 +57,12 @@
           {
             "group": "Dataset preprocessing",
             "pages": [
-              "api-reference/dataset-preprocessing/health",
-              "api-reference/dataset-preprocessing/upload-dataset",
-              "api-reference/dataset-preprocessing/process-dataset",
-              "api-reference/dataset-preprocessing/get-datasets",
-              "api-reference/dataset-preprocessing/get-dataset",
-              "api-reference/dataset-preprocessing/delete-dataset"
+              "api-reference/dataset/health",
+              "api-reference/dataset/upload-dataset",
+              "api-reference/dataset/process-dataset",
+              "api-reference/dataset/get-datasets",
+              "api-reference/dataset/get-dataset",
+              "api-reference/dataset/delete-dataset"
             ]
           },
           {

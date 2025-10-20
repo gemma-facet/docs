@@ -1,5 +1,5 @@
 ---
-title: "Fine-tuning Gemma Models"
+title: "Fine-Tuning Workflow"
 description: "Learn how to fine-tune Gemma models for your specific tasks using Facet's training service"
 ---
 
@@ -7,7 +7,7 @@ Fine‑tune a Gemma model on your domain data with a simple, repeatable flow. Yo
 
 <Steps>
 <Step title="Prepare your dataset">
-  Process data into conversation or preference format using the [dataset preprocessing guide](/dataset-preprocessing/introduction).
+  Process data into conversation or preference format using the [dataset preprocessing guide](/dataset/introduction.mdx).
   <Check>
     Verify a small sample looks correct before training.
   </Check>
@@ -15,7 +15,7 @@ Fine‑tune a Gemma model on your domain data with a simple, repeatable flow. Yo
 <Step title="Select base model and method">
   Pick a Gemma size that fits your budget, then choose SFT (supervised), DPO/ORPO (preference), or GRPO (reasoning with rewards).
 </Step>
-<Step title="Choose efficiency">
+<Step title="Enable PEFT and quantization if needed">
   Start with QLoRA for strong results on modest hardware; use Full finetune only when you need maximal capacity.
 </Step>
 <Step title="Launch and monitor">

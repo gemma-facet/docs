@@ -1,5 +1,5 @@
 ---
-title: "Training Configuration Guide"
+title: "Fine-tuning Guide"
 description: "Complete guide to configuring and launching training jobs in Facet"
 ---
 
@@ -152,6 +152,8 @@ This comprehensive guide walks you through every aspect of training configuratio
 - Slightly lower capacity than full fine-tuning
 - May need higher rank for complex tasks
 
+## Quantization Configuration
+
 ### QLoRA (Quantized LoRA)
 
 **When to use**: Resource-constrained environments, most use cases
@@ -172,6 +174,8 @@ This comprehensive guide walks you through every aspect of training configuratio
   Start with QLoRA for most tasks. It provides excellent results while using
   minimal resources.
 </Tip>
+
+Note that we currently only support 4 bit quantization for QLoRA. We will be moving away from bitsandbytes in the future to more robust methods, stay tuned.
 
 ## Hyperparameter Configuration
 
