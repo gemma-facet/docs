@@ -5,7 +5,48 @@ description: "Complete guide to uploading, processing, and managing datasets in 
 
 This guide walks you through everything you need to know about working with datasets in Facet, from uploading your data to configuring field mappings and processing options.
 
+## Using Hugging Face Datasets
+
+We recommend using datasets from the [Hugging Face Hub](https://huggingface.co/datasets) for easy integration and management.
+If your data requirement is not supported by our platform or custom upload, you can preprocess manually and upload to Hugging Face Hub first.
+
+Import datasets directly from Hugging Face Hub using their repository name:
+
+```text
+Examples to try:
+- microsoft/DialoGPT-medium
+- HuggingFaceH4/ultrachat_200k
+- tatsu-lab/alpaca
+```
+
+<Steps>
+<Step title="Find a Dataset">
+  Browse [Hugging Face Datasets](https://huggingface.co/datasets) to find one that fits your needs.
+  
+  <Tip>
+  Look for datasets with conversation or instruction-following formats for best results.
+  </Tip>
+</Step>
+
+<Step title="Copy the Repository Name">
+  Use the format `organization/dataset-name` from the dataset page.
+  <Note>
+    You don't need to include the full URL, just the repository identifier.
+  </Note>
+</Step>
+
+<Step title="Select Subset and Split">
+  If the dataset has multiple subsets, choose the one you want to use.
+  
+  <Check>
+  Common subsets include "train", "test", "validation", or specific task names.
+  </Check>
+</Step>
+</Steps>
+
 ## Uploading Your Dataset
+
+We are working on expanding this service to handle unstructured documents with LLM-based synthesis.
 
 ### Supported File Formats
 
@@ -51,61 +92,13 @@ Facet supports a wide range of data formats for maximum flexibility:
   for datasets over 100MB.
 </Warning>
 
-## Using Hugging Face Datasets
-
-### Public Datasets
-
-Import datasets directly from Hugging Face Hub using their repository name:
-
-```text
-Examples:
-- microsoft/DialoGPT-medium
-- HuggingFaceH4/ultrachat_200k
-- tatsu-lab/alpaca
-```
-
-<Steps>
-<Step title="Find a Dataset">
-  Browse [Hugging Face Datasets](https://huggingface.co/datasets) to find one that fits your needs.
-  
-  <Tip>
-  Look for datasets with conversation or instruction-following formats for best results.
-  </Tip>
-</Step>
-
-<Step title="Copy the Repository Name">
-  Use the format `organization/dataset-name` from the dataset page.
-  <Note>
-    You don't need to include the full URL, just the repository identifier.
-  </Note>
-</Step>
-
-<Step title="Select Subset (Optional)">
-  If the dataset has multiple subsets, choose the one you want to use.
-  
-  <Check>
-  Common subsets include "train", "test", "validation", or specific task names.
-  </Check>
-</Step>
-</Steps>
-
-### Private Datasets
-
-For private repositories, you'll need to provide your Hugging Face token:
-
-1. Go to [Hugging Face Settings](https://huggingface.co/settings/tokens)
-2. Create a new token with "Read" permissions
-3. Enter the token when prompted during dataset import
-
-<Warning>
-  Keep your Hugging Face token secure and never share it publicly.
-</Warning>
-
 ## Configuring Field Mappings
 
 Field mappings tell Facet how to transform your data into the conversational format needed for training.
 
 ### Understanding Field Types
+
+In the dropdown menus for field selection, you will see three types of fields:
 
 <Tabs>
 <Tab title="Template Fields">
@@ -178,20 +171,9 @@ This mode creates prompts without assistant responses, perfect for GRPO training
 
 This mode creates data with chosen and rejected responses for preference-based training algorithms.
 
-## Vision Dataset Configuration
+## Data Augmentation
 
-When working with images, Facet automatically detects image fields and enables vision processing.
-
-### Supported Image Formats
-
-- **File paths**: Direct references to image files in your dataset
-- **Base64 encoded**: Images embedded as base64 strings
-- **Hugging Face format**: Images with `bytes` field (from HF datasets)
-
-<Note>
-  Images are always added to user messages only, and you can include multiple
-  images in a single message.
-</Note>
+We are working on expanding this!
 
 ## Next Steps
 

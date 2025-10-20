@@ -3,102 +3,39 @@ title: "Running Inference & Exporting Models"
 description: "Complete guide to testing your models and exporting them for deployment"
 ---
 
-This guide covers everything you need to know about testing your fine-tuned models and exporting them in various formats for deployment.
+Use this guide to run quick checks and batch evaluations, compare models side‑by‑side, and export the final model for deployment.
 
-## Running Single Inference
+## Run inference and evaluation
 
-Test your model with individual prompts to see how it responds in real-time.
+<Steps>
+<Step title="Select model(s)">
+  Choose a trained or base model. Select two models to enable side‑by‑side comparisons.
+</Step>
+<Step title="Choose a mode">
+  On the next screen, pick either Batch Inference (quick, lightweight checks) or Evaluation (full metrics on labeled data).
+</Step>
+<Step title="Load data">
+  For Batch Inference: load a dataset and optionally limit the number of samples. For Evaluation: use a labeled eval split from preprocessing.
+</Step>
+<Step title="Run and monitor">
+  Start the job and track progress. Large datasets take longer.
+</Step>
+<Step title="Review results">
+  Inspect predictions vs. references (when available), compare models, and review summary metrics.
+</Step>
+</Steps>
 
-### Basic Text Inference
+### Running batch inference
 
-For simple text prompts, use the single inference endpoint:
+1. Load a dataset.
+2. Select how many samples to run.
+3. Review predictions vs. references (if available) for quick “vibe checks.”
 
-```json
-{
-  "hf_token": "your_huggingface_token",
-  "model_source": "gs://bucket/trained_adapters/job_123/adapter",
-  "model_type": "adapter",
-  "base_model_id": "google/gemma-3-2b-pt",
-  "prompt": "What is the capital of France?"
-}
-```
+<Tip>
+Batch inference is ideal for sanity checks before committing to a full evaluation.
+</Tip>
 
-**Response**:
-
-```json
-{
-  "result": "The capital of France is Paris."
-}
-```
-
-### Conversation Inference
-
-For multi-turn conversations, use the batch inference endpoint with a single conversation:
-
-```json
-{
-  "hf_token": "your_huggingface_token",
-  "model_source": "username/model-name",
-  "model_type": "merged",
-  "base_model_id": "google/gemma-3-2b-pt",
-  "messages": [
-    [
-      { "role": "system", "content": "You are a helpful assistant." },
-      {
-        "role": "user",
-        "content": "Explain quantum computing in simple terms."
-      }
-    ]
-  ]
-}
-```
-
-### Vision Inference
-
-For multimodal tasks with images, include base64-encoded images:
-
-```json
-{
-  "hf_token": "your_huggingface_token",
-  "model_source": "username/model-name",
-  "model_type": "adapter",
-  "base_model_id": "google/gemma-3-2b-pt",
-  "messages": [
-    [
-      {
-        "role": "user",
-        "content": [
-          { "type": "text", "text": "What do you see in this image?" },
-          {
-            "type": "image",
-            "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
-          }
-        ]
-      }
-    ]
-  ]
-}
-```
-
-## Batch Evaluation
-
-Run comprehensive evaluations on your test datasets to get detailed performance metrics.
-
-### Using Task Types (Recommended)
-
-Let the system automatically select appropriate metrics for your task:
-
-```json
-{
-  "hf_token": "your_huggingface_token",
-  "model_source": "username/model-name",
-  "model_type": "merged",
-  "base_model_id": "google/gemma-3-2b-pt",
-  "dataset_id": "processed_dataset_123",
-  "task_type": "conversation",
-  "num_sample_results": 5
-}
-```
+### Evaluation
 
 **Available Task Types**:
 
@@ -109,21 +46,21 @@ Let the system automatically select appropriate metrics for your task:
 - `classification` → Accuracy, Precision, Recall, F1
 - `general` → BERTScore, ROUGE
 
-### Using Specific Metrics
+<Tips>
+<Tip title="Use your eval split">
+  You should already have an evaluation split from preprocessing.
+</Tip>
+<Tip title="Spot-check samples">
+  Evaluations include example predictions vs. references for quick inspection.
+</Tip>
+<Tip title="Control sample size">
+  You can limit the number of samples for faster runs.
+</Tip>
+</Tips>
+
+#### Using Specific Metrics
 
 For more control, specify exact metrics to compute:
-
-```json
-{
-  "hf_token": "your_huggingface_token",
-  "model_source": "username/model-name",
-  "model_type": "adapter",
-  "base_model_id": "google/gemma-3-2b-pt",
-  "dataset_id": "processed_dataset_123",
-  "metrics": ["bertscore", "rouge", "exact_match"],
-  "num_sample_results": 10
-}
-```
 
 **Available Metrics**:
 
@@ -134,31 +71,7 @@ For more control, specify exact metrics to compute:
 - `precision`, `recall`, `f1`: Classification metrics
 - `bleu`, `meteor`: Translation metrics
 
-### Evaluation Response
-
-```json
-{
-  "metrics": {
-    "bertscore_f1": 0.85,
-    "rouge_l": 0.82,
-    "rouge_1": 0.85,
-    "rouge_2": 0.78,
-    "exact_match": 0.65
-  },
-  "samples": [
-    {
-      "prediction": "The capital of France is Paris.",
-      "reference": "Paris is the capital of France.",
-      "sample_index": 42
-    }
-  ],
-  "num_samples": 1000,
-  "dataset_id": "processed_dataset_123",
-  "task_type": "conversation"
-}
-```
-
-## Model Export
+## Model export
 
 Export your fine-tuned models in various formats for different deployment scenarios.
 
@@ -194,17 +107,6 @@ Export your fine-tuned models in various formats for different deployment scenar
   - Larger file size (several GB)
   - Ready for immediate deployment
   - Compatible with most inference engines
-  
-  **Configuration**:
-  ```json
-  {
-    "export_id": "exp_124",
-    "job_id": "job_457",
-    "type": "merged",
-    "destination": ["gcs", "hf_hub"],
-    "hf_repo_id": "username/my-merged-model"
-  }
-  ```
 </Tab>
 
 <Tab title="GGUF Format">
@@ -215,18 +117,6 @@ Export your fine-tuned models in various formats for different deployment scenar
   - CPU-optimized
   - Compatible with llama.cpp, ollama
   - Good for edge deployment
-  
-  **Configuration**:
-  ```json
-  {
-    "export_id": "exp_125",
-    "job_id": "job_458",
-    "type": "gguf",
-    "destination": ["gcs", "hf_hub"],
-    "hf_repo_id": "username/my-model-gguf",
-    "gguf_quantization": "q8_0"
-  }
-  ```
 </Tab>
 </Tabs>
 
@@ -265,8 +155,12 @@ Choose the right quantization level for your needs:
 </Tab>
 
 <Tab title="q4_k_m">
-  **Best for**: Maximum compression, resource-constrained environments - 4-bit
-  quantization - Smaller file size - Some quality loss - Very fast inference
+  **Best for**: Maximum compression, resource‑constrained environments
+  
+  - 4-bit quantization
+  - Smaller file size
+  - Some quality loss
+  - Very fast inference
 </Tab>
 
 <Tab title="f16">
@@ -279,29 +173,15 @@ Choose the right quantization level for your needs:
 </Tab>
 </Tabs>
 
-## Inference Providers
+## Inference providers
 
-Facet supports multiple inference backends for different use cases:
+When running inference and evaluation on Facet AI, you can select from multiple providers optimized for different use cases.
 
-### HuggingFace Transformers
+- Use the HF provider for non‑Unsloth models.
+- Use the Unsloth provider for models trained with Unsloth.
+- If you plan to deploy with vLLM, choose the vLLM provider to keep behavior consistent across environments.
 
-- **Use case**: Standard inference, most compatible
-- **Supports**: All model types and modalities
-- **Best for**: General use, testing, development
-
-### Unsloth
-
-- **Use case**: Optimized inference for Unsloth-trained models
-- **Supports**: Unsloth-optimized models
-- **Best for**: Models trained with Unsloth framework
-
-### vLLM
-
-- **Use case**: High-performance production inference
-- **Supports**: Merged models and adapters (via LoRA)
-- **Best for**: High-throughput production deployment
-
-## Best Practices
+## Best practices
 
 ### Inference Testing
 
@@ -369,38 +249,12 @@ Facet supports multiple inference backends for different use cases:
 
 <AccordionGroup>
 <Accordion title="Inference Fails">
-  **Possible causes**:
-  - Invalid model source path
-  - Incorrect model type
-  - Missing base model ID
-  - Authentication issues
+  - Model not found or invalid model format
+  - Insufficient resources available
   
-  **Solutions**:
-  - Verify model source path and type
-  - Check base model ID matches training
-  - Ensure valid HuggingFace token
-  - Check model accessibility
-</Accordion>
-
-<Accordion title="Evaluation Errors">
-  **Possible causes**: - Dataset format mismatch - Missing reference data -
-  Invalid metric configuration - Memory issues **Solutions**: - Verify dataset
-  format and content - Check metric compatibility - Reduce batch size if OOM -
-  Use appropriate task type
-</Accordion>
-
-<Accordion title="Export Failures">
-  **Possible causes**:
-  - Model not found
-  - Insufficient permissions
-  - Export format not supported
-  - Network issues
-  
-  **Solutions**:
-  - Verify training job completed
-  - Check export permissions
-  - Use supported format for model type
-  - Retry with stable connection
+  <Tip>
+  Retry later or deploy on your cloud if you need guaranteed capacity.
+  </Tip>
 </Accordion>
 </AccordionGroup>
 

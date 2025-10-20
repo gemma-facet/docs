@@ -8,7 +8,8 @@ description: "Get started with Facet AI in minutes - fine-tune your first Gemma 
 This quickstart guide will walk you through creating your first fine-tuned model using Facet AI. You'll go from data upload to model deployment in just a few steps.
 
 <Note>
-**Prerequisites:** You'll need a Facet AI account. If you don't have one, [sign up here](https://gemma-facet.vercel.app) first.
+  **Prerequisites:** You'll need a Facet AI account. If you don't have one,
+  [sign up here](https://gemma-facet.vercel.app) first.
 </Note>
 
 ## Step 1: Create Your Account and Access the Platform
@@ -43,6 +44,18 @@ This quickstart guide will walk you through creating your first fine-tuned model
 <Step title="Upload Your Data">
   You have two options for getting your training data:
 
+  <Tab title="Connect Hugging Face">
+    1. Go to **Datasets** → **Create Dataset**
+    2. Choose "Import from Hugging Face"
+    3. Enter the dataset name (e.g., `huggingface/datasets`)
+    4. Select the specific split you want to use
+
+    <Tip>
+    Popular datasets for fine-tuning: `wikitext`, `openwebtext`, `alpaca`
+    </Tip>
+
+  </Tab>
+
   <Tabs>
   <Tab title="Upload Custom Data">
     1. Go to **Datasets** → **Create Dataset**
@@ -53,26 +66,17 @@ This quickstart guide will walk you through creating your first fine-tuned model
     <Warning>
     Supported formats: CSV, JSON, TXT. Maximum file size: 100MB per upload.
     </Warning>
+
   </Tab>
 
-  <Tab title="Connect Hugging Face">
-    1. Go to **Datasets** → **Create Dataset**
-    2. Choose "Import from Hugging Face"
-    3. Enter the dataset name (e.g., `huggingface/datasets`)
-    4. Select the specific split you want to use
-
-    <Tip>
-    Popular datasets for fine-tuning: `wikitext`, `openwebtext`, `alpaca`
-    </Tip>
-  </Tab>
   </Tabs>
 </Step>
 
 <Step title="Configure Dataset Processing">
   1. After upload, configure your dataset:
      - **Task Type**: Choose from Language Modeling, Preference Tuning, or Multimodal
-     - **Format**: Select the appropriate format for your data
-     - **Augmentation**: Enable data augmentation if desired
+     - **Format**: Convert your dataset into conversational format for training
+     - **Augmentation**: Setup data augmentation if desired
   2. Click "Process Dataset"
 
   <Check>
@@ -94,16 +98,16 @@ This quickstart guide will walk you through creating your first fine-tuned model
      - **Gemma 3 12B**: High quality, requires more resources
 
   <Info>
-  For your first model, we recommend starting with Gemma 3 1B for a good balance of speed and quality.
+  For your first model, we recommend starting with Gemma 3 270M/1B to get quick results.
   </Info>
 </Step>
 
 <Step title="Configure Training Parameters">
-  Set your training parameters:
+  Set your training parameters (or use defaults):
   - **Learning Rate**: Start with default (0.0001)
   - **Batch Size**: Use default (4) for most cases
-  - **Training Steps**: Default (1000) is good for quick testing
-  - **Training Method**: Choose SFT (Supervised Fine-Tuning) for most tasks
+  - **Epochs**: Generally 1-3 epochs suffice, for testing limit to 100-500 training steps
+  - **Training Method**: Select between SFT, DPO, or GRPO based on your task
 
   <Tip>
   You can adjust these parameters later as you become more experienced with fine-tuning.
@@ -189,7 +193,11 @@ Congratulations! You've successfully fine-tuned your first Gemma model. Here's w
   Deploy your models to production using Google Cloud Run or other platforms.
 </Card>
 
-<Card title="Evaluation Techniques" icon="chart-line" href="/evaluation/inference_export">
+<Card
+  title="Evaluation Techniques"
+  icon="chart-line"
+  href="/evaluation/inference_export"
+>
   Learn comprehensive evaluation methods to assess your model's quality.
 </Card>
 
@@ -208,10 +216,8 @@ Congratulations! You've successfully fine-tuned your first Gemma model. Here's w
 </Accordion>
 
 <Accordion title="Poor model performance">
-  - Try a larger model size (1B → 4B → 12B)
-  - Increase training steps
-  - Check your dataset quality and size
-  - Consider data augmentation
+  - Try a larger model size (1B → 4B → 12B) - Increase training steps - Check
+  your dataset quality and size - Consider data augmentation
 </Accordion>
 
 <Accordion title="Export issues">
@@ -222,5 +228,6 @@ Congratulations! You've successfully fine-tuned your first Gemma model. Here's w
 </AccordionGroup>
 
 <Note>
-**Need more help?** Check out our [comprehensive tutorials](/tutorials) or contact support at facet.gemma@gmail.com.
+  **Need more help?** Check out our [comprehensive tutorials](/tutorials) or
+  contact support at facet.gemma@gmail.com.
 </Note>
