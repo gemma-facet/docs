@@ -1,80 +1,233 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Get started with Facet AI in minutes - fine-tune your first Gemma model"
 ---
 
-## Get started in three steps
+## Welcome to Facet AI
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+This quickstart guide will walk you through creating your first fine-tuned model using Facet AI. You'll go from data upload to model deployment in just a few steps.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  **Prerequisites:** You'll need a Facet AI account. If you don't have one,
+  [sign up here](https://gemma-facet.vercel.app) first.
+</Note>
+
+## Step 1: Create Your Account and Access the Platform
+
+<Steps>
+<Step title="Sign up for Facet AI">
+  1. Visit [Facet AI](https://gemma-facet.vercel.app)
+  2. Click "Get Started" and create your account
+  3. Verify your email address if required
+
+  <Check>
+  You should see the Facet AI dashboard after successful signup.
+  </Check>
+</Step>
+
+<Step title="Navigate to the Dashboard">
+  Once logged in, you'll see the main dashboard with sections for:
+  - **Datasets**: Manage your training data
+  - **Training**: Create and monitor fine-tuning jobs
+  - **Models**: View your trained models
+  - **Exports**: Download models in various formats
+
+  <Tip>
+  Bookmark the dashboard URL for easy access to your projects.
+  </Tip>
+</Step>
+</Steps>
+
+## Step 2: Prepare Your Dataset
+
+<Steps>
+<Step title="Upload Your Data">
+  You have two options for getting your training data:
+
+  <Tab title="Connect Hugging Face">
+    1. Go to **Datasets** → **Create Dataset**
+    2. Choose "Import from Hugging Face"
+    3. Enter the dataset name (e.g., `huggingface/datasets`)
+    4. Select the specific split you want to use
+
+    <Tip>
+    Popular datasets for fine-tuning: `wikitext`, `openwebtext`, `alpaca`
+    </Tip>
+
+  </Tab>
+
+  <Tabs>
+  <Tab title="Upload Custom Data">
+    1. Go to **Datasets** → **Create Dataset**
+    2. Choose "Upload from file"
+    3. Upload your data file (CSV, JSON, or TXT)
+    4. Give your dataset a descriptive name
+
+    <Warning>
+    Supported formats: CSV, JSON, TXT. Maximum file size: 100MB per upload.
+    </Warning>
+
+  </Tab>
+
+  </Tabs>
+</Step>
+
+<Step title="Configure Dataset Processing">
+  1. After upload, configure your dataset:
+     - **Task Type**: Choose from Language Modeling, Preference Tuning, or Multimodal
+     - **Format**: Convert your dataset into conversational format for training
+     - **Augmentation**: Setup data augmentation if desired
+  2. Click "Process Dataset"
+
+  <Check>
+  Processing typically takes 1-5 minutes depending on dataset size.
+  </Check>
+</Step>
+</Steps>
+
+## Step 3: Start Your First Training Job
+
+<Steps>
+<Step title="Create Training Configuration">
+  1. Go to **Training** → **New Job**
+  2. Select your processed dataset from the dropdown
+  3. Choose your model:
+     - **Gemma 3 270M**: Fastest, good for experimentation
+     - **Gemma 3 1B**: Balanced performance and speed
+     - **Gemma 3 4B**: Better quality, longer training time
+     - **Gemma 3 12B**: High quality, requires more resources
+
+  <Info>
+  For your first model, we recommend starting with Gemma 3 270M/1B to get quick results.
+  </Info>
+</Step>
+
+<Step title="Configure Training Parameters">
+  Set your training parameters (or use defaults):
+  - **Learning Rate**: Start with default (0.0001)
+  - **Batch Size**: Use default (4) for most cases
+  - **Epochs**: Generally 1-3 epochs suffice, for testing limit to 100-500 training steps
+  - **Training Method**: Select between SFT, DPO, or GRPO based on your task
+
+  <Tip>
+  You can adjust these parameters later as you become more experienced with fine-tuning.
+  </Tip>
+</Step>
+
+<Step title="Launch Training">
+  1. Review your configuration
+  2. Give your training job a descriptive name
+  3. Click "Start Training"
+
+  <Check>
+  Training will begin immediately. You can monitor progress in the Training section.
+  </Check>
+</Step>
+</Steps>
+
+## Step 4: Monitor and Evaluate Your Model
+
+<Steps>
+<Step title="Track Training Progress">
+  1. Go to **Training** to see your active jobs
+  2. Click on your training job to view detailed progress
+  3. Monitor metrics like loss, learning rate, and training time
+
+  <Note>
+  Training time varies: 270M models train in ~30 minutes, while 12B models can take several hours.
+  </Note>
+</Step>
+
+<Step title="Test Your Model">
+  Once training completes:
+  1. Go to **Models** section
+  2. Find your newly trained model
+  3. Click "Test Model" to run inference
+  4. Try different prompts to evaluate performance
+
+  <Tip>
+  Test with various prompts to ensure your model performs well across different scenarios.
+  </Tip>
+</Step>
+</Steps>
+
+## Step 5: Export and Deploy Your Model
+
+<Steps>
+<Step title="Export Your Model">
+  1. Go to **Exports** → **Create Export**
+  2. Select your trained model
+  3. Choose export format:
+     - **GGUF**: For local deployment with llama.cpp
+     - **Adapter**: For Hugging Face transformers
+     - **Merged**: Complete model ready for deployment
+  4. Select quantization level (4-bit, 8-bit, or 16-bit)
+  5. Click "Create Export"
+
+  <Check>
+  Export typically takes 5-15 minutes depending on model size and format.
+  </Check>
+</Step>
+
+<Step title="Download Your Model">
+  1. Once export completes, click "Download"
+  2. Save the model file to your local machine
+  3. Your model is now ready for deployment!
+
+  <Warning>
+  Keep your model files secure and don't share them publicly unless intended.
+  </Warning>
+</Step>
+</Steps>
+
+## Next Steps
+
+Congratulations! You've successfully fine-tuned your first Gemma model. Here's what to explore next:
+
+<CardGroup cols={2}>
+<Card title="Advanced Training" icon="cogs" href="/fine-tuning/training">
+  Learn about DPO, GRPO, and advanced training techniques for better model performance.
+</Card>
+
+<Card title="Model Deployment" icon="rocket" href="/deployment/deployment">
+  Deploy your models to production using Google Cloud Run or other platforms.
+</Card>
+
+<Card
+  title="Evaluation Techniques"
+  icon="chart-line"
+  href="/evaluation/inference_export"
+>
+  Learn comprehensive evaluation methods to assess your model's quality.
+</Card>
+
+<Card title="Dataset Best Practices" icon="database" href="/dataset/datasets">
+  Master dataset preparation for optimal fine-tuning results.
+</Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Training fails to start">
+  - Check your dataset is properly processed
+  - Ensure you have sufficient credits/quota
+  - Verify your training parameters are valid
+</Accordion>
+
+<Accordion title="Poor model performance">
+  - Try a larger model size (1B → 4B → 12B) - Increase training steps - Check
+  your dataset quality and size - Consider data augmentation
+</Accordion>
+
+<Accordion title="Export issues">
+  - Ensure training completed successfully
+  - Try a different export format
+  - Check your available storage quota
+</Accordion>
+</AccordionGroup>
+
+<Note>
+  **Need more help?** Check out our [comprehensive tutorials](/tutorials) or
+  contact support at facet.gemma@gmail.com.
 </Note>

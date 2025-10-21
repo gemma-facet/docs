@@ -1,207 +1,29 @@
 ---
-title: "Fine-tuning Gemma Models"
+title: "Fine-Tuning Workflow"
 description: "Learn how to fine-tune Gemma models for your specific tasks using Facet's training service"
 ---
 
-# Fine-tuning Gemma Models
-
-Transform Gemma models into specialized AI assistants tailored to your specific needs. Facet makes fine-tuning accessible with a no-code interface, powerful training algorithms, and optimized configurations.
-
-## What You Can Do
-
-<CardGroup cols={2}>
-<Card title="Multiple Model Sizes" icon="layers">
-  Fine-tune Gemma 3 models from 270M to 27B parameters
-</Card>
-
-<Card title="Various Training Methods" icon="cog">
-  Use SFT, DPO, ORPO, and GRPO for different objectives
-</Card>
-
-<Card title="Efficient Training" icon="zap">
-  LoRA and QLoRA for memory-efficient fine-tuning
-</Card>
-
-<Card title="Vision Support" icon="image">
-  Fine-tune multimodal models with text and images
-</Card>
-</CardGroup>
-
-## Supported Models
-
-Facet supports the complete Gemma 3 family:
-
-<Tabs>
-<Tab title="Text Models">
-  - **Gemma 3 270M**: Fast, lightweight for simple tasks
-  - **Gemma 3 1B**: Balanced performance and efficiency
-  - **Gemma 3 4B**: High-quality responses, good for most tasks
-  - **Gemma 3 12B**: Advanced reasoning and complex tasks
-  - **Gemma 3 27B**: State-of-the-art performance
-</Tab>
-
-<Tab title="Vision Models">
-  - **Gemma 3n E2B**: Multimodal with 2B parameters
-  - **Gemma 3n E4B**: Multimodal with 4B parameters
-  
-  <Note>
-  Vision models can process both text and images for multimodal tasks.
-  </Note>
-</Tab>
-</Tabs>
-
-## Training Methods
-
-Choose the right training method for your objective:
-
-### Supervised Fine-Tuning (SFT)
-
-**Best for**: General conversation, instruction following, domain adaptation
-
-- Uses your processed dataset with conversations
-- Learns from human demonstrations
-- Most common fine-tuning approach
-
-### Direct Preference Optimization (DPO)
-
-**Best for**: Aligning models with human preferences
-
-- Uses paired examples (chosen vs rejected responses)
-- Learns to prefer better responses
-- Great for safety and helpfulness alignment
-
-### Odds Ratio Preference Optimization (ORPO)
-
-**Best for**: Alternative preference learning approach
-
-- Similar to DPO but with different optimization
-- Can be more stable in some cases
-- Good alternative to DPO
-
-### Group-Related Policy Optimization (GRPO)
-
-**Best for**: Reasoning tasks, math problems, structured thinking
-
-- Uses reward functions to score responses
-- Learns to maximize rewards through reasoning
-- Perfect for complex problem-solving tasks
-
-## Training Efficiency Options
-
-### Full Fine-tuning
-
-- Updates all model parameters
-- Requires more memory and compute
-- Best for large datasets and major domain changes
-
-### LoRA (Low-Rank Adaptation)
-
-- Updates only a small subset of parameters
-- Much more memory efficient
-- Good for most fine-tuning tasks
-
-### QLoRA (Quantized LoRA)
-
-- Combines quantization with LoRA
-- Most memory efficient option
-- Recommended for most use cases
-
-<Tip>
-  Start with QLoRA for most tasks. It provides excellent results while using
-  minimal resources.
-</Tip>
-
-## Getting Started
+Fine‑tune a Gemma model on your domain data with a simple, repeatable flow. You’ll pick a base model, choose a training method (SFT, DPO/ORPO, or GRPO), and run efficiently with Full, LoRA, or QLoRA depending on resources. Vision variants support text+image.
 
 <Steps>
-<Step title="Prepare Your Dataset">
-  Upload and process your data using the [dataset preprocessing guide](/dataset-preprocessing/introduction).
-  
+<Step title="Prepare your dataset">
+  Process data into conversation or preference format using the [dataset preprocessing guide](/dataset/introduction.mdx).
   <Check>
-  Make sure your dataset is processed and ready before starting training.
+    Verify a small sample looks correct before training.
   </Check>
 </Step>
-
-<Step title="Choose Your Model">
-  Select the Gemma model size that fits your needs and resources.
-  <Note>
-    Larger models generally perform better but require more compute resources.
-  </Note>
+<Step title="Select base model and method">
+  Pick a Gemma size that fits your budget, then choose SFT (supervised), DPO/ORPO (preference), or GRPO (reasoning with rewards).
 </Step>
-
-<Step title="Configure Training">
-  Set up your training parameters, method, and efficiency options.
-  <Tip>
-    Use the recommended settings for your first training run, then experiment
-    with custom parameters.
-  </Tip>
+<Step title="Enable PEFT and quantization if needed">
+  Start with QLoRA for strong results on modest hardware; use Full finetune only when you need maximal capacity.
 </Step>
-
-<Step title="Start Training">
-  Launch your training job and monitor progress.
-  <Warning>
-    Training can take several hours depending on your dataset size and model
-    choice.
-  </Warning>
+<Step title="Launch and monitor">
+  Start the job and watch training/validation signals to catch issues early.
 </Step>
-
-<Step title="Evaluate Results">
-  Test your fine-tuned model and review performance metrics.
-  
-  <Check>
-  Use the evaluation tools to assess your model's performance on test data.
-  </Check>
+<Step title="Evaluate and iterate">
+  Test the model, compare to the baseline, and iterate on data or settings.
 </Step>
 </Steps>
 
-## Training Configuration
-
-### Essential Settings
-
-- **Base Model**: Choose from available Gemma models
-- **Training Method**: SFT, DPO, ORPO, or GRPO
-- **Efficiency Method**: Full, LoRA, or QLoRA
-- **Dataset**: Your processed dataset
-- **Hyperparameters**: Learning rate, batch size, epochs
-
-### Advanced Options
-
-- **Evaluation**: Set up validation and testing
-- **Monitoring**: Track training with Weights & Biases
-- **Export**: Configure model export formats
-- **Reward Functions**: Set up graders for GRPO training
-
-## Best Practices
-
-<Tips>
-<Tip title="Start Small">
-  Begin with a smaller model (1B or 4B) to test your approach before scaling up.
-</Tip>
-
-<Tip title="Quality Data">
-  Ensure your dataset is high-quality and representative of your target task.
-</Tip>
-
-<Tip title="Appropriate Method">
-  Choose the training method that matches your data format and objectives.
-</Tip>
-
-<Tip title="Monitor Training">
-  Watch training metrics to catch issues early and adjust if needed.
-</Tip>
-
-<Tip title="Validate Results">
-  Always test your model on held-out data to ensure it generalizes well.
-</Tip>
-</Tips>
-
-## Next Steps
-
-Once your model is trained:
-
-1. **Evaluate Performance**: Use the evaluation tools to assess your model
-2. **Export Your Model**: Download in various formats (adapter, merged, GGUF)
-3. **Deploy**: Set up your model for production use
-4. **Iterate**: Use feedback to improve your model with additional training
-
-Ready to start training? Head to the [Training guide](/fine-tuning/training) for detailed instructions on configuring and launching your training job.
+Next: open the [Training guide](/fine-tuning/training) for step‑by‑step configuration details.

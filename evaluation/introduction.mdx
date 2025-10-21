@@ -1,204 +1,32 @@
 ---
-title: "Model Evaluation & Inference"
+title: "Eval and Exports Workflow"
 description: "Test your fine-tuned models and run comprehensive evaluations to assess performance"
 ---
 
-## What You Can Do
-
-Once your model is trained, it's time to test its performance and capabilities. Facet provides powerful evaluation tools to help you understand how well your model performs on different tasks and datasets.
-
-<CardGroup cols={2}>
-<Card title="Run Inference" icon="play">
-  Test your model with custom prompts and conversations
-</Card>
-
-<Card title="Batch Evaluation" icon="layers">
-  Evaluate your model on entire datasets with multiple metrics
-</Card>
-
-<Card title="Performance Metrics" icon="chart">
-  Get detailed performance analysis with accuracy, BLEU, ROUGE, and more
-</Card>
-
-<Card title="Export Models" icon="download">
-  Download your models in various formats for deployment
-</Card>
-</CardGroup>
-
-## Evaluation Methods
-
-### Single Inference
-
-Test your model with individual prompts to see how it responds:
-
-- **Text prompts**: Simple question-answer testing
-- **Conversations**: Multi-turn dialogue testing
-- **Vision tasks**: Image understanding and description
-- **Custom scenarios**: Test specific use cases
-
-### Batch Evaluation
-
-Run comprehensive evaluations on your test datasets:
-
-- **Multiple metrics**: BLEU, ROUGE, BERTScore, accuracy
-- **Task-specific metrics**: Customized for your use case
-- **Statistical analysis**: Confidence intervals and significance testing
-- **Sample results**: Review individual predictions and references
-
-## Supported Metrics
-
-### Text Quality Metrics
-
-<Tabs>
-<Tab title="Semantic Similarity">
-  - **BERTScore**: Semantic similarity using BERT embeddings
-  - **ROUGE**: Text overlap and summarization quality
-  - **BLEU**: Translation and generation quality
-  
-  <Tip>
-  BERTScore is recommended for most LLM evaluations as it captures semantic meaning.
-  </Tip>
-</Tab>
-
-<Tab title="Exact Matching">
-  - **Exact Match**: Perfect string matching - **Accuracy**: Token-level
-  accuracy - **F1 Score**: Precision and recall balance
-  <Note>Use exact matching for tasks with specific, factual answers.</Note>
-</Tab>
-
-<Tab title="Classification">
-  - **Precision**: True positives / (True positives + False positives)
-  - **Recall**: True positives / (True positives + False negatives)
-  - **F1**: Harmonic mean of precision and recall
-  
-  <Check>
-  These metrics are useful for classification and categorization tasks.
-  </Check>
-</Tab>
-</Tabs>
-
-### Task-Specific Metrics
-
-- **Question Answering**: Exact match, F1 score
-- **Summarization**: ROUGE scores, BERTScore
-- **Translation**: BLEU, METEOR
-- **Conversation**: BERTScore, response relevance
-- **General**: BERTScore, ROUGE
-
-## Model Export Options
-
-### Export Formats
-
-<Tabs>
-<Tab title="Adapter Format">
-  **Best for**: LoRA/QLoRA models, easy to merge later
-  
-  - Smaller file size
-  - Requires base model
-  - Easy to combine with other adapters
-  - Good for experimentation
-</Tab>
-
-<Tab title="Merged Format">
-  **Best for**: Standalone deployment, vLLM inference 
-  
-  - Self-contained model 
-  - Ready for deployment 
-  - Compatible with most inference engines 
-  - Larger file size
-</Tab>
-
-<Tab title="GGUF Format">
-  **Best for**: CPU inference, local deployment
-  
-  - Quantized for efficiency
-  - CPU-optimized
-  - Compatible with llama.cpp, ollama
-  - Good for resource-constrained environments
-</Tab>
-</Tabs>
-
-### Export Destinations
-
-- **Google Cloud Storage**: Download as zip files
-- **Hugging Face Hub**: Publish to HF Hub for sharing
-- **Local Download**: Direct download to your machine
-
-## Getting Started
+Evaluate a trained model with quick, interactive inference or run a batch job against a dataset to get objective metrics. Review results, compare to a baseline, and export the best checkpoint for deployment.
 
 <Steps>
-<Step title="Prepare Your Model">
-  Ensure your training job has completed successfully.
-  
+<Step title="Select a model">
+  Pick a completed training job or a previously exported model.
   <Check>
-  You'll need the model source path and base model ID from your training job.
+    Have the model source path and base model ID handy.
   </Check>
 </Step>
-
-<Step title="Choose Evaluation Method">
-  Decide between single inference testing or batch evaluation on a dataset.
-  <Tip>
-    Start with single inference to test basic functionality, then move to batch
-    evaluation for comprehensive assessment.
-  </Tip>
+<Step title="Choose evaluation mode">
+  Start with single‑prompt inference to sanity‑check behavior, then move to batch evaluation on a labeled dataset.
 </Step>
-
-<Step title="Configure Metrics">
-  Select the metrics that best match your task and objectives.
-  <Note>
-    BERTScore and ROUGE are good defaults for most text generation tasks.
-  </Note>
+<Step title="Pick metrics">
+  Select task‑appropriate metrics (e.g., BERTScore/ROUGE for generation, EM/F1 for QA, accuracy/F1 for classification).
 </Step>
-
-<Step title="Run Evaluation">
-  Launch your evaluation and monitor progress.
-  <Warning>
-    Large datasets may take several minutes to evaluate completely.
-  </Warning>
+<Step title="Run and monitor">
+  Launch the job and watch progress; large datasets take longer.
 </Step>
-
-<Step title="Review Results">
-  Analyze the metrics and sample results to understand your model's performance.
-  
-  <Check>
-  Look for patterns in both successful and failed predictions to identify areas for improvement.
-  </Check>
+<Step title="Review and compare">
+  Inspect metrics and samples, compare against a baseline, and note failure patterns to guide the next training round.
+</Step>
+<Step title="Export for serving">
+  When satisfied, export the model in your preferred format for deployment.
 </Step>
 </Steps>
 
-## Best Practices
-
-<Tips>
-<Tip title="Use Appropriate Metrics">
-  Choose metrics that align with your task objectives and evaluation goals.
-</Tip>
-
-<Tip title="Test on Diverse Data">
-  Evaluate on data that represents your target use case and edge cases.
-</Tip>
-
-<Tip title="Compare Baselines">
-  Compare your fine-tuned model against the base model to measure improvement.
-</Tip>
-
-<Tip title="Analyze Failures">
-  Look at failed predictions to understand model limitations and areas for
-  improvement.
-</Tip>
-
-<Tip title="Iterate and Improve">
-  Use evaluation results to guide further training and data collection.
-</Tip>
-</Tips>
-
-## Next Steps
-
-After evaluating your model:
-
-1. **Analyze Results**: Review metrics and identify strengths and weaknesses
-2. **Export Model**: Download your model in the format you need
-3. **Deploy**: Set up your model for production use
-4. **Monitor**: Track performance in production and collect feedback
-5. **Iterate**: Use insights to improve your model with additional training
-
-Ready to start evaluating? Head to the [Inference & Export guide](/evaluation/inference_export) for detailed instructions on running evaluations and exporting your models.
+Next: see the [Inference & Export guide](/evaluation/inference_export) for detailed setup and options.

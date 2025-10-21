@@ -1,21 +1,9 @@
 ---
-title: "Training Configuration Guide"
+title: "Fine-tuning Guide"
 description: "Complete guide to configuring and launching training jobs in Facet"
 ---
 
-# Training Configuration Guide
-
 This comprehensive guide walks you through every aspect of training configuration, from selecting the right model to monitoring your training progress.
-
-## Prerequisites
-
-Before starting your training job, ensure you have:
-
-<Checklist>
-  - [ ] **Processed Dataset**: Your data has been uploaded and processed through the preprocessing service 
-  - [ ] **Hugging Face Token**: Valid token with appropriate permissions (if using HF Hub)
-  - [ ] **Clear Objective**: Know what you want your model to learn
-</Checklist>
 
 ## Selecting Your Base Model
 
@@ -30,6 +18,7 @@ Before starting your training job, ensure you have:
   
   <Tip>
   Start with 1B for most applications. It provides good performance while being resource-efficient.
+  These models do not support vision fine-tuning!
   </Tip>
 </Tab>
 
@@ -54,34 +43,13 @@ Before starting your training job, ensure you have:
 </Tab>
 </Tabs>
 
-### Vision Models
-
-For multimodal tasks involving images:
-
-- **Gemma 3n E2B**: 2B parameters, good for basic vision tasks
-- **Gemma 3n E4B**: 4B parameters, advanced vision understanding
-
-<Note>
-  Vision models automatically detect when your dataset contains images and
-  enable multimodal processing.
-</Note>
-
 ## Choosing Your Training Method
 
 ### Supervised Fine-Tuning (SFT)
 
 **When to use**: General conversation, instruction following, domain adaptation
 
-**Data format**: Conversations with system, user, and assistant messages
-
-**Configuration**:
-
-```json
-{
-  "trainer_type": "sft",
-  "processing_mode": "language_modeling"
-}
-```
+**Data format**: Language modeling
 
 <AccordionGroup>
 <Accordion title="Best Practices">
@@ -103,16 +71,7 @@ For multimodal tasks involving images:
 
 **When to use**: Aligning models with human preferences, safety, helpfulness
 
-**Data format**: Paired examples with chosen and rejected responses
-
-**Configuration**:
-
-```json
-{
-  "trainer_type": "dpo",
-  "processing_mode": "preference"
-}
-```
+**Data format**: Preference tuning (chosen vs rejected responses)
 
 <AccordionGroup>
 <Accordion title="Data Requirements">
@@ -136,40 +95,13 @@ For multimodal tasks involving images:
 
 **Data format**: Same as DPO (chosen vs rejected responses)
 
-**Configuration**:
-
-```json
-{
-  "trainer_type": "orpo",
-  "processing_mode": "preference"
-}
-```
-
-<Note>
-  ORPO can be more stable than DPO in some cases and may converge faster.
-</Note>
+<Note>Unlike DPO, you do not need to perform SFT prior to ORPO training.</Note>
 
 ### Group-Related Policy Optimization (GRPO)
 
 **When to use**: Reasoning tasks, math problems, structured thinking
 
-**Data format**: Prompts without responses (model generates and gets scored)
-
-**Configuration**:
-
-```json
-{
-  "trainer_type": "grpo",
-  "processing_mode": "prompt_only",
-  "reward_config": [
-    {
-      "name": "math_accuracy",
-      "type": "numerical_accuracy",
-      "reference_field": "answer"
-    }
-  ]
-}
-```
+**Data format**: Prompt-only (no assistant responses)
 
 <AccordionGroup>
 <Accordion title="Reward Functions">
@@ -204,19 +136,6 @@ For multimodal tasks involving images:
 - Longer training time
 - Higher compute costs
 
-**Configuration**:
-
-```json
-{
-  "method": "Full",
-  "hyperparameters": {
-    "learning_rate": 0.00005,
-    "batch_size": 1,
-    "gradient_accumulation_steps": 8
-  }
-}
-```
-
 ### LoRA (Low-Rank Adaptation)
 
 **When to use**: Most fine-tuning tasks, good balance of performance and efficiency
@@ -233,19 +152,7 @@ For multimodal tasks involving images:
 - Slightly lower capacity than full fine-tuning
 - May need higher rank for complex tasks
 
-**Configuration**:
-
-```json
-{
-  "method": "LoRA",
-  "hyperparameters": {
-    "lora_rank": 16,
-    "lora_alpha": 16,
-    "lora_dropout": 0.05,
-    "learning_rate": 0.0001
-  }
-}
-```
+## Quantization Configuration
 
 ### QLoRA (Quantized LoRA)
 
@@ -263,24 +170,12 @@ For multimodal tasks involving images:
 - Slight quantization overhead
 - May need fine-tuning for optimal results
 
-**Configuration**:
-
-```json
-{
-  "method": "QLoRA",
-  "hyperparameters": {
-    "lora_rank": 16,
-    "lora_alpha": 16,
-    "lora_dropout": 0.05,
-    "learning_rate": 0.0002
-  }
-}
-```
-
 <Tip>
   Start with QLoRA for most tasks. It provides excellent results while using
   minimal resources.
 </Tip>
+
+Note that we currently only support 4 bit quantization for QLoRA. We will be moving away from bitsandbytes in the future to more robust methods, stay tuned.
 
 ## Hyperparameter Configuration
 
@@ -312,9 +207,7 @@ For multimodal tasks involving images:
   **Purpose**: Number of complete passes through the dataset
   
   **Recommended values**:
-  - Small datasets: 5-10
-  - Medium datasets: 3-5
-  - Large datasets: 1-3
+  - 1-3 epochs for most tasks
   
   <Tip>
   Monitor validation loss to avoid overfitting. Stop early if validation loss starts increasing.
@@ -353,20 +246,8 @@ For multimodal tasks involving images:
 
 ## Evaluation Configuration
 
-### Setting Up Evaluation
-
-Enable evaluation during training to monitor performance:
-
-```json
-{
-  "eval_config": {
-    "eval_strategy": "epoch",
-    "eval_steps": 50,
-    "compute_eval_metrics": true,
-    "batch_eval_metrics": false
-  }
-}
-```
+Note that this evaluation is different from the inference/evaluation service used post-training. This calculates token-level metrics and raw eval loss.
+For most use cases, you can disable this to speed up training and use the inference service for evaluation after training.
 
 ### Evaluation Strategies
 
@@ -395,53 +276,13 @@ The system automatically computes:
 
 ### Weights & Biases Integration
 
-Track your training with W&B for detailed monitoring:
+Track your training with W&B for detailed monitoring by providing your API key.
 
-```json
-{
-  "wandb_config": {
-    "api_key": "your_wandb_key",
-    "project_name": "gemma-fine-tuning",
-    "run_name": "my-experiment"
-  }
-}
-```
+## Trackio
 
-### Training Metrics to Watch
-
-<Checklist>
-  - [ ] **Training Loss**: Should decrease over time - [ ] **Validation Loss**:
-  Should follow training loss closely - [ ] **Learning Rate**: Should follow the
-  scheduler - [ ] **Gradient Norm**: Should be stable (not exploding/vanishing)
-  - [ ] **Memory Usage**: Should be within limits
-</Checklist>
-
-### Early Stopping
-
-Monitor validation loss and stop training if:
-
-- Validation loss stops decreasing
-- Validation loss starts increasing (overfitting)
-- Training loss becomes much lower than validation loss
+We are working on this :)
 
 ## Export Configuration
-
-### Export Formats
-
-Configure how your model will be exported:
-
-```json
-{
-  "export_config": {
-    "format": "adapter",
-    "destination": "gcs",
-    "include_gguf": false,
-    "gguf_quantization": "q8_0"
-  }
-}
-```
-
-### Export Options
 
 <Tabs>
 <Tab title="Adapter Format">
@@ -472,43 +313,6 @@ Configure how your model will be exported:
 </Tabs>
 
 Learn more about export options on the [Inference, Evaluation, and Export](/evaluation/inference_export.mdx) page.
-
-## Complete Training Configuration Example
-
-Here's a complete example for training a code assistant:
-
-```json
-{
-  "base_model_id": "google/gemma-2b",
-  "provider": "unsloth",
-  "method": "QLoRA",
-  "trainer_type": "sft",
-  "modality": "text",
-  "hyperparameters": {
-    "learning_rate": 0.0002,
-    "batch_size": 4,
-    "gradient_accumulation_steps": 4,
-    "epochs": 3,
-    "max_length": 2048,
-    "lora_rank": 16,
-    "lora_alpha": 16,
-    "lora_dropout": 0.05
-  },
-  "export_config": {
-    "format": "adapter",
-    "destination": "gcs",
-    "include_gguf": true,
-    "gguf_quantization": "q8_0"
-  },
-  "eval_config": {
-    "eval_strategy": "epoch",
-    "compute_eval_metrics": true
-  },
-  "wandb_config": {
-    "project_name": "code-assistant-training"
-  }
-}
-```
 
 ## Troubleshooting
 

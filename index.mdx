@@ -1,59 +1,107 @@
 ---
-title: Getting Started with Facet AI
+title: "Facet AI"
+description: "Democratizing LLM fine-tuning for everyone"
 ---
 
-Facet AI is a no-code web platform where you can easily fine tune the Gemma family of vision and small language models for your task and domain specific adaptations, without worrying about dataset formatting, cloud engineering, training algorithms — you can get started from scratch in a few minutes with little programming & AI experience!
+## What is Facet AI?
 
-## Features and Limitations
+Facet AI is a **no-code** platform that makes fine-tuning Gemma models accessible to everyone. Whether you're a researcher, developer, or business user, you can create custom language models tailored to your specific needs without the complexity of traditional ML workflows.
 
-### What we support
+## Key Features
 
-- Creating an account to manage your datasets, training, evaluation, etc.
+<CardGroup cols={2}>
+<Card title="Easy Dataset Preparation" icon="database">
+  Upload your data or connect to Hugging Face Hub. We handle formatting for language modeling, preference tuning, and multimodal tasks.
+</Card>
 
-- Augmentation and preparation of datasets from custom upload or Hugging Face Hub for language modelling, preference tuning, reinforcement learning, and multimodal tasks
+<Card title="Multiple Model Sizes" icon="computer">
+  Fine-tune Gemma 3 models from 270M to 27B parameters, including Gemma 3n variants, using SFT, DPO, and GRPO.
+</Card>
 
-- Configuring fine tuning for Gemma 3 270M, 1B, 4B, 12B, 27B, Gemma 3n E2B and E4B using supervised fine tuning (SFT), direct policy optimization (DPO), and group-related policy optimization (GRPO).
+<Card title="Built-in Evaluation" icon="chart-line">
+  Test your models with comprehensive inference and evaluation suites to measure performance before deployment.
+</Card>
 
-- Run inference & evaluation suites on fine tuned models to assess their performance
+<Card title="Flexible Export" icon="download">
+  Export models in multiple formats (adapter, merged, GGUF) with various quantizations for deployment anywhere.
+</Card>
+</CardGroup>
 
-- Export models in various formats (adapter, merged, GGUF) and quantizations and deploy them easily on Google Cloud Run or other providers with pre-built containers
+## Quick Demo!
 
-### What we're not for
-
-- Dataset collection: while we help you augment your dataset based on uploaded sources, we do not e.g. scrape the web to collect data
-
-- LLM deployment: our service will not run the deployed model for you; you should set up your own runtime / cloud project to do that — we have a tutorial for it.
+<iframe
+  className="w-full aspect-video rounded-xl"
+  src="https://www.youtube.com/embed/JGnzoLSZReI"
+  title="YouTube video player"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+></iframe>
 
 ## Getting Started
 
-You can access our service in three common ways:
+Choose your path based on your needs:
 
-1. Directly through our web interface (runs on our managed Google Cloud Platform). Create an account and access the app from the project website.
+<CardGroup cols={3}>
+<Card title="Quick Start" icon="rocket" href="/quickstart">
+  Get up and running in minutes using our managed platform. Perfect for trying out Facet AI.
+</Card>
 
-2. Deploy the project on your own cloud service provider (recommended: GCP). Follow the "deploy your own service" guide. Our docker container images are served on Docker Hub. We provide Terraform to help set up the GCP project; for other providers (e.g. AWS) you can use the pre-built containers.
+<Card title="Self-Deploy" icon="server" href="/deployment">
+  Deploy Facet AI on your own cloud infrastructure for full control and customization.
+</Card>
 
-3. Fork the project for your own customization. We're open-source — see `CONTRIBUTING.md` for contribution details.
+<Card title="Developer Guide" icon="code" href="/developer">
+  Contribute to the open-source project or customize for your organization.
+</Card>
+</CardGroup>
 
-## Usage guide
+<Note>
+For production and enterprise use, deploy Facet AI to your own cloud for full control, security, and autoscaling. Our platform provides 100% Infrastructure-as-Code (IaC) for easy, automated setup. We have limited compute capacity on the managed platform to ensure fair usage for all users.
+</Note>
 
-If you have experience fine tuning LLMs, the UI should be intuitive. If you're confused, refer to these docs:
 
-- Creating datasets — /dataset-preprocessing/datasets
-- Creating fine-tune jobs — /fine-tuning/training
-- Inference, evaluation, export — /evaluation/inference_export
-- Deploying the model — /deployment/deployment
+## Coming Soon
 
-## Acknowledgements
+We're working on the documentation right now! Stay tuned for detailed guides on:
 
-We are grateful for Hugging Face `datasets`, `transformers`, `trl`, and Unsloth `unsloth, unsloth-zoo` as the underlying backend for fine tuning, and `vLLM, llama.cpp, ollama` as inference backends.
+- A lot of video tutorials to go over common use cases instead of just text
+- For key technical concepts, link to great learning resources, courses, references, videos, etc.
 
-We also thank mentors at Google Cloud, Google DeepMind, and Google Summer of Code for their support.
+## What We Support
+
+<AccordionGroup>
+<Accordion title="Dataset Management">
+  - Custom data uploads and Hugging Face Hub integration
+  - Automatic dataset augmentation and preparation
+  - Support for language modeling, preference tuning, and multimodal tasks
+</Accordion>
+
+<Accordion title="Model Training">
+  - Gemma 3 family: 270M, 1B, 4B, 12B, 27B parameters
+  - Gemma 3n variants: E2B and E4B
+  - Training methods: SFT, DPO, and GRPO
+</Accordion>
+
+<Accordion title="Evaluation & Deployment">
+  - Built-in inference and evaluation tools
+  - Multiple export formats and quantizations
+  - Easy deployment to Google Cloud Run and other providers
+</Accordion>
+</AccordionGroup>
+
+## Limitations
+
+<Warning>
+**What Facet AI doesn't do:**
+- Web scraping for data collection
+- Hosting deployed models (you deploy them yourself)
+- Custom model architectures beyond Gemma variants
+</Warning>
 
 ---
 
 import { Callout } from "mint-ui";
 
-<Callout title="Developer docs" type="info">
-  This guide is for platform users. For implementation details or to contribute,
-  see the `README.md` in each subfolder.
+<Callout title="Need help?" type="info">
+  Check out our [quickstart guide](/quickstart) to get started in minutes, or explore our [comprehensive tutorials](/tutorials) for detailed workflows.
 </Callout>

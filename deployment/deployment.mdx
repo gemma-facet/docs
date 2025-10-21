@@ -3,8 +3,6 @@ title: "Model Deployment Guide"
 description: "Deploy your fine-tuned models for production use with various deployment options"
 ---
 
-# Model Deployment Guide
-
 Once your model is trained and evaluated, it's time to deploy it for production use. This guide covers multiple deployment options from local development to cloud production.
 
 ## Deployment Options
@@ -31,7 +29,7 @@ Once your model is trained and evaluated, it's time to deploy it for production 
 
 ### GGUF Format (Recommended for Local)
 
-GGUF models are optimized for CPU inference and work well for local deployment.
+GGUF models are optimized for CPU inference and work well for local deployment. First, download your model in GGUF format from the Facet AI platform.
 
 #### Using llama.cpp
 
@@ -153,6 +151,8 @@ print(response)
 ```
 
 ## Cloud Deployment
+
+Cloud deployment is purely experiment for now, will expand in future.
 
 ### Google Cloud Run (vLLM)
 
@@ -316,155 +316,6 @@ spec:
       targetPort: 8000
   type: LoadBalancer
 ```
-
-## Performance Optimization
-
-### Model Optimization
-
-<Tips>
-<Tip title="Quantization">
-  Use quantized models (GGUF) for better performance and lower memory usage.
-</Tip>
-
-<Tip title="Batch Processing">
-  Process multiple requests together to improve throughput.
-</Tip>
-
-<Tip title="Caching">
-  Cache model responses for repeated queries to reduce compute costs.
-</Tip>
-
-<Tip title="Load Balancing">
-  Use multiple model instances behind a load balancer for high availability.
-</Tip>
-</Tips>
-
-### Infrastructure Optimization
-
-<Tips>
-<Tip title="Right-sizing">
-  Choose instance types that match your model's memory and compute requirements.
-</Tip>
-
-<Tip title="Auto-scaling">
-  Configure auto-scaling based on request volume to optimize costs.
-</Tip>
-
-<Tip title="CDN">
-  Use a CDN for static content and API responses to reduce latency.
-</Tip>
-
-<Tip title="Monitoring">
-  Set up monitoring and alerting to track performance and costs.
-</Tip>
-</Tips>
-
-## Monitoring and Maintenance
-
-### Health Checks
-
-Implement health checks to monitor your deployment:
-
-```python
-from flask import Flask, jsonify
-import torch
-
-app = Flask(__name__)
-
-@app.route('/health')
-def health_check():
-    try:
-        # Check if model is loaded and responsive
-        test_input = "Test prompt"
-        # Run a quick inference to verify model works
-        # ... model inference code ...
-
-        return jsonify({
-            "status": "healthy",
-            "model_loaded": True,
-            "gpu_available": torch.cuda.is_available()
-        })
-    except Exception as e:
-        return jsonify({
-            "status": "unhealthy",
-            "error": str(e)
-        }), 500
-```
-
-### Logging and Metrics
-
-Set up comprehensive logging and metrics:
-
-```python
-import logging
-import time
-from functools import wraps
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-def log_inference(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = time.time()
-        try:
-            result = func(*args, **kwargs)
-            duration = time.time() - start_time
-            logger.info(f"Inference completed in {duration:.2f}s")
-            return result
-        except Exception as e:
-            logger.error(f"Inference failed: {str(e)}")
-            raise
-    return wrapper
-
-@log_inference
-def generate_response(prompt):
-    # Your inference code here
-    pass
-```
-
-## Security Considerations
-
-### API Security
-
-<Tips>
-<Tip title="Authentication">
-  Implement API key authentication or OAuth for production deployments.
-</Tip>
-
-<Tip title="Rate Limiting">
-  Add rate limiting to prevent abuse and ensure fair usage.
-</Tip>
-
-<Tip title="Input Validation">
-  Validate and sanitize all inputs to prevent injection attacks.
-</Tip>
-
-<Tip title="HTTPS">
-  Always use HTTPS in production to encrypt data in transit.
-</Tip>
-</Tips>
-
-### Model Security
-
-<Tips>
-<Tip title="Model Access">
-  Restrict access to your model files and API endpoints.
-</Tip>
-
-<Tip title="Data Privacy">
-  Ensure user data is handled according to privacy regulations.
-</Tip>
-
-<Tip title="Audit Logging">
-  Log all API calls and model usage for security auditing.
-</Tip>
-
-<Tip title="Regular Updates">
-  Keep your deployment infrastructure and dependencies updated.
-</Tip>
-</Tips>
 
 ## Troubleshooting
 
