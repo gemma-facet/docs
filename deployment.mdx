@@ -16,10 +16,10 @@ Deploying Facet AI on your own infrastructure gives you complete control over yo
 Facet AI consists of two main components:
 
 <CardGroup cols={2}>
-<Card title="Backend Services" icon="server">
+<Card title="Cloud Services" icon="server">
   - Dataset preprocessing microservice
-  - Training orchestration service
-  - Inference and evaluation service
+  - Training orchestration microservice
+  - Training, inference, evaluation GPU workers
   - Model export service
   - API Gateway for unified access
 </Card>
@@ -49,18 +49,22 @@ Facet AI consists of two main components:
   </Tab>
 
   <Tab title="Install Required Tools">
-    Install the following tools on your local machine:
+    Install the required CLI tools. Use the official install guides for your OS when in doubt.
 
     ```bash
-    # Install Terraform
-    curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-    sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-    sudo apt-get update && sudo apt-get install terraform
+    # macOS (Homebrew)
+    brew install terraform
+    brew install --cask google-cloud-sdk
 
-    # Install Google Cloud CLI
-    curl https://sdk.cloud.google.com | bash
-    exec -l $SHELL
+    # Debian/Ubuntu (apt)
+    # See https://www.terraform.io/downloads and https://cloud.google.com/sdk/docs/install
+    sudo apt-get update && sudo apt-get install -y terraform
+    # Follow GCP docs to install the Cloud SDK for your distro
     ```
+
+    Refer to the official docs for other platforms:
+    - Terraform: https://www.terraform.io/downloads
+    - Google Cloud CLI: https://cloud.google.com/sdk/docs/install
   </Tab>
   </Tabs>
 </Step>
@@ -85,6 +89,10 @@ Facet AI consists of two main components:
 </Step>
 </Steps>
 
+<Note>
+Our Terraform IaC includes both production and staging setups. The staging workspace is intended mainly for development and testing; see the [staging section](#staging) for details.
+</Note>
+
 ## Deploy Backend Services
 
 <Steps>
@@ -95,12 +103,13 @@ Facet AI consists of two main components:
      cd cloud-services/infrastructure
      ```
 
-  2. Copy the example configuration:
+  2. Copy and edit the configuration files for your environment:
      ```bash
-     cp terraform.tfvars.example terraform.tfvars
+     cp environments/staging.tfvars.example environments/staging.tfvars
+     cp environments/production.tfvars.example environments/production.tfvars
      ```
 
-  3. Edit `terraform.tfvars` with your project details:
+  3. Edit `terraform.tfvars` or the appropriate `*.tfvars` with your project details:
      ```hcl
      project_id = "your-project-id"
      region = "us-central1"
@@ -111,34 +120,26 @@ Facet AI consists of two main components:
   Use our automated deployment script:
 
   ```bash
-  make init
-  make full-deploy
-  make output
+  make init ENV=production
+  make full-deploy ENV=production
+  make output ENV=production
   ```
 
   <Info>
   The `make full-deploy` command performs these steps automatically:
-  1. Deploy core infrastructure (APIs, IAM, Artifact Registry, Storage, Firebase)
+  1. Deploy core infrastructure (APIs, IAM, Artifact Registry, Storage, Firebase, networking)
   2. Build and push Docker images to Artifact Registry
-  3. Deploy microservices and setup networking (Cloud Run and API Gateway)
+  3. Deploy microservices and configure networking (Cloud Run and API Gateway)
   </Info>
 
   <Tip>
-  This process typically takes 15-30 minutes depending on your region and project setup.
+  Expect the deployment to take ~15-30 minutes depending on region and project size. The process runs unattended in most cases.
   </Tip>
 </Step>
 
-<Step title="Configure Authentication">
-  1. Go to [Firebase Console](https://console.firebase.google.com)
-  2. Select your project
-  3. Navigate to **Authentication** → **Sign-in method**
-  4. Enable **Google** sign-in provider
-  5. Copy the OAuth client ID and other Firebase config values
-
   <Warning>
-  You must manually enable Google authentication in Firebase Console as this cannot be automated via Terraform.
+  Our IaC configures Firebase authentication (email/password) for you so the frontend can run out of the box. It does not enable Google OAuth by default. To add Google sign-in, go to Firebase Console → Authentication → Sign-in method and enable Google.
   </Warning>
-</Step>
 </Steps>
 
 ## Deploy Frontend Application
@@ -163,7 +164,7 @@ Facet AI consists of two main components:
      INFERENCE_SERVICE_URL=https://your-inference-service-url
      API_GATEWAY_URL=https://your-api-gateway-url
 
-     # From Firebase Console
+     # Also from terraform output
      NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
      NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
@@ -173,9 +174,23 @@ Facet AI consists of two main components:
      ```
 </Step>
 
-<Step title="Deploy to Your Platform">
+<Step title="Running the Frontend">
   <Tabs>
-  <Tab title="Vercel (Recommended)">
+  <Tab title="Run Locally">
+
+    We recommend using `bun` for development, but `npm` or `yarn` also work.
+
+    ```bash
+    npm run install
+    npm run build
+    npm run start
+    ```
+
+    <Tip>
+    Access the app at `http://localhost:3000` in your browser.
+    </Tip>
+  </Tab>
+  <Tab title="Deploy to Vercel">
     ```bash
     # Install Vercel CLI
     npm i -g vercel
@@ -187,33 +202,6 @@ Facet AI consists of two main components:
     <Tip>
     Vercel provides automatic deployments from GitHub and excellent performance for Next.js applications.
     </Tip>
-  </Tab>
-
-  <Tab title="Google Cloud Run">
-    ```bash
-    # Build the application
-    docker build -t gcr.io/YOUR_PROJECT_ID/facet-frontend .
-
-    # Push to Container Registry
-    docker push gcr.io/YOUR_PROJECT_ID/facet-frontend
-
-    # Deploy to Cloud Run
-    gcloud run deploy facet-frontend \
-      --image gcr.io/YOUR_PROJECT_ID/facet-frontend \
-      --platform managed \
-      --region us-central1 \
-      --allow-unauthenticated
-    ```
-  </Tab>
-
-  <Tab title="AWS (ECS/Lambda)">
-    ```bash
-    # Build for AWS
-    npm run build
-
-    # Deploy using AWS CLI or CDK
-    aws s3 sync out/ s3://your-bucket-name
-    ```
   </Tab>
   </Tabs>
 </Step>
@@ -250,6 +238,14 @@ Facet AI consists of two main components:
   ```
 </Accordion>
 </AccordionGroup>
+
+### Staging
+
+The staging workspace in the Terraform setup is mainly intended for development and testing. If you'd like a staging environment for your own development, follow the guide in our repo to set up a staging workspace in three commands: https://github.com/gemma-facet/cloud-services/tree/main/infrastructure
+
+<Note>
+Running `npm run dev` in the frontend will automatically connect to the staging backend since we use Next.js environment variables to differentiate between staging and production. You can manually edit this by changing the `.env` file.
+</Note>
 
 ### Infrastructure Components
 
@@ -314,17 +310,6 @@ Facet AI consists of two main components:
   ```
 </Accordion>
 </AccordionGroup>
-
-## Security Considerations
-
-<Warning>
-**Important Security Notes:**
-- Never commit API keys or secrets to version control
-- Use Google Secret Manager for sensitive configuration
-- Enable audit logging for all services
-- Regularly rotate service account keys
-- Implement proper network security rules
-</Warning>
 
 <Note>
 **Need help with deployment?** Check our [GitHub repository](https://github.com/gemma-facet/cloud-services) for the latest updates and open an issue if you encounter problems.
