@@ -3,4 +3,46 @@ title: "Video Tutorials"
 description: "End-to-end walkthrough for real-world use cases"
 ---
 
-This page is under construction. We would be putting youtube video links here soon!
+New to Facet AI? This is the best place to start! Our videos walk you through common real-world examples sourced from cookbooks, tutorials, and industry use cases.
+
+<Note>
+  We might not train the models with full dataset or very long epochs in these
+  videos since the purpose is to demonstrate platform usage. If you wish to
+  share a use case, feel free to post an issue [on our
+  GitHub!](https://github.com/gemma-facet/docs).
+</Note>
+
+## Language Modeling with SFT
+
+Videos in this section cover supervised fine-tuning (SFT), the most common method for adapting large language models to specific tasks using labeled datasets.
+
+### Improving Gemma 270M by 50% at emotion classification
+
+This example uses [emotions dataset from Hugging Face Hub](https://huggingface.co/datasets/boltuix/emotions-dataset) to fine-tune Gemma 270M for emotion classification.
+In just 20 minutes of training, evaluation performance improved significantly and we are able to quickly try it out locally with Ollama.
+
+<iframe
+  className="w-full aspect-video rounded-xl"
+  src="https://www.youtube.com/embed/GkIl7LTiDjE?si=FvJlrnew0-D63a9G"
+  title="YouTube video player"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  referrerpolicy="strict-origin-when-cross-origin"
+  allowfullscreen
+></iframe>
+
+### Coming Soon
+
+- Deploying models to cloud with vLLM
+- LoRA on 4B models with vision datasets
+- Fine tune 1B model on datasets with different language
+- Using local datasets and dataset augmentation / synthesis
+- Quickly benchmark Gemma models on common benchmark datasets from Hub
+
+## Reinforcement Learning with GRPO
+
+- Coming soon with reasoning examples...
+
+## Preference Tuning with DPO / ORPO
+
+- Coming soon...
